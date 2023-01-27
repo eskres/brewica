@@ -4,6 +4,7 @@ export interface User {
   username: string;
   emailAddress: string;
   password: string;
+  passwordConf: string;
 }
 
 const userSchema = new mongoose.Schema<User>({ 

@@ -16,6 +16,9 @@ export const signupPost = async (req: Request, res: Response, next: NextFunction
     if (!password.match(/^(?=.*[A-Za-z])(?=.*\d)(?=.*[!#$%&'*+/=?^_‘{|}~-])[A-Za-z\d!#$%&'*+/=?^_‘{|}~-]{8,}/)) {
         return(res.status(400).json({message:`Password requires 8 or more characters with a mix of letters, numbers & symbols`}));
     }
+    if (password !== req.body.passwordConf) {        
+        return(res.status(400).json({message:'Passwords do not match'}));
+    }
     
     // Hash password
     const hash = await argon2.hash(password, {
@@ -25,7 +28,7 @@ export const signupPost = async (req: Request, res: Response, next: NextFunction
         parallelism: 1 // Minimum parallelism of 1 required
     });
     
-    // Validate hash
+    // Validate hash    
     if (hash.length === 97 && hash.startsWith('$argon2id$') && hash !== password) {
         req.body.password = hash;
     } else {
