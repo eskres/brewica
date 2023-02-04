@@ -25,5 +25,3 @@ const devOptions: SMTPTransport.Options = {
 process.env.NODE_ENV === 'production' ? options = prodOptions : options = devOptions;
 
 export const transport: nodemailer.Transporter = nodemailer.createTransport(options);
-
-// process.env.SMTP_SENDER
