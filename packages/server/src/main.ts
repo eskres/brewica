@@ -9,12 +9,14 @@ interface Error {
   statusCode?: number;
 }
 
-import express = require('express');
-import mongoose = require('mongoose');
-import path = require('path');
+import express from 'express';
+import * as mongoose from 'mongoose';
+import * as path from 'path';
 import * as dotenv from "dotenv";
 
-dotenv.config()
+dotenv.config({
+  path: 'packages/server/.env'
+})
 
 export const app: express.Application = express();
 app.use(express.json());

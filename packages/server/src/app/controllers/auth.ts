@@ -3,7 +3,8 @@ import { NextFunction, Request, Response } from 'express'
 import UserModel, { User } from '../models/User';
 import * as argon2 from "argon2";
 import * as dns from "dns"
-import * as mailService from '../../utils/nodemailer'
+import  { transport } from '../../utils/nodemailer'
+import { SendMailOptions } from 'nodemailer';
 
 // Require jsonwebtoken
 // import jwt = require("jsonwebtoken")
@@ -12,8 +13,18 @@ export const signupPost = async (req: Request, res: Response, next: NextFunction
     const username: string = req.body.username.toString().toLowerCase();
     const email: string = req.body.emailAddress.toString();
     const password: string = req.body.password.toString();
-    try{
+    const code = crypto.randomUUID();
 
+    const info: SendMailOptions = {
+        from: `'"Brewica" <${import.meta.env.SMTP_SENDER}>'`,
+        to: email,
+        subject: `Verify your email to start using Brewica`,
+        text: `Hi ${username}! Thanks for signing up to Brewica. Before we can continue, we need to validate your email address. ${import.meta.env.APP_URL}/user/verify?t=${code}`,
+        html: `<p>Hi ${username}!</p> <p>Thanks for signing up to Brewica. Before we can continue, we need to validate your email address.</p><strong><a href="${import.meta.env.APP_URL}/user/verify?t=${code}" target="_blank">Verify email address</a></strong>`,
+    };
+
+    try{
+    
     // Validate password
     if (!password.match(/^(?=.*[A-Za-z])(?=.*\d)(?=.*[!#$%&'*+/=?^_‘{|}~-])[A-Za-z\d!#$%&'*+/=?^_‘{|}~-]{8,}/)) {
         return res.status(400).json({message:`Password requires 8 or more characters with a mix of letters, numbers & symbols`});
@@ -59,8 +70,14 @@ export const signupPost = async (req: Request, res: Response, next: NextFunction
         return res.status(400).json({message:`Email address invalid, provider "${host}" cannot be reached`});
     });
     
-    // Save to database
-    if (!res.headersSent) {            
+    if (!res.headersSent) {
+        // Send verification email
+        await transport.sendMail(info)
+        .catch((err) => {
+            console.log(err);
+            return res.status(500).json({message:'Email verification failed please contact site administrator'});
+        })
+        // Save to database
         const user = new UserModel(req.body)
         user.save()
         .then(()=>{

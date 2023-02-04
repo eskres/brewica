@@ -14,7 +14,6 @@ export default defineConfig({
       root: '../../',
     }),
   ],
-
   test: {
     globals: true,
     globalSetup: '../../',
@@ -23,6 +22,5 @@ export default defineConfig({
     },
     environment: 'jsdom',
     include: ['src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
-    setupFiles: ['../../mocks/setup.ts'],
   },
 });

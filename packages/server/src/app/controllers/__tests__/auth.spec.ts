@@ -1,10 +1,12 @@
-import { describe, test, beforeAll, afterAll, afterEach, expect } from 'vitest'
+import { describe, test, beforeAll, afterAll, beforeEach, afterEach, expect, vi, SpyInstance } from 'vitest'
 import { connectDB, dropDB, dropCollections } from '../../../testUtils/mongoMemoryServer'
 import request = require('supertest')
 import { app } from '../../../main'
 import { faker } from '@faker-js/faker';
 import { User } from '../../models/User'
 import UserModel from '../../models/User';
+import { transport } from '../../../utils/nodemailer';
+import { SendMailOptions } from 'nodemailer';
 
 beforeAll(async () => {
     await connectDB();
@@ -229,7 +231,7 @@ describe('User POST /auth/signup', () => {
         expect(savedUser.emailAddress).toEqual(testUser.emailAddress.toLowerCase())
         expect(savedUser.password).not.toEqual(testUser.password)
         expect(savedUser.password).toContain('argon2id')
-    })
+    });
 
     test('saves the user to MongoDB and sends a success message to user', async () => {
         // Arrange
@@ -248,9 +250,33 @@ describe('User POST /auth/signup', () => {
         const savedUser: User = await UserModel.findOne({emailAddress: testUser.emailAddress});
 
         // Assert
-        expect(savedUser).not.toBeDefined;
+        expect(savedUser).toBeDefined;
         expect(savedUser.emailAddress).toEqual(testUser.emailAddress.toLocaleLowerCase());
         expect(response.body.message).toEqual("Account created successfully");
         expect(response.status).toEqual(200);
-    })
+    });
+
+    test('send verification email and receive no errors', async () => {
+        // Arrange
+        const password: string = faker.internet.password(15, false, /\w/, '_0');
+        
+        const testUser: User = ({
+            username: faker.internet.userName(),
+            emailAddress: faker.internet.email(),
+            password: password,
+            passwordConf: password
+        });
+        
+        // Act
+        const sendMail: SpyInstance = vi.spyOn(transport, 'sendMail');
+        const response: request.Response = await request(app).post("/auth/signup")
+        .send(testUser);        
+
+        // Assert
+        expect(sendMail).toBeCalledTimes(1);
+        expect(sendMail.mock.results[0].value.accepted[0]).toEqual(testUser.emailAddress);
+        expect(response.body.message).toEqual("Account created successfully");
+        expect(response.status).toEqual(200);
+    });
+
 })
