@@ -16,11 +16,11 @@ export const signupPost = async (req: Request, res: Response, next: NextFunction
     const code = crypto.randomUUID();
 
     const info: SendMailOptions = {
-        from: `'"Brewica" <${import.meta.env.SMTP_SENDER}>'`,
+        from: `'"Brewica" <${process.env.SMTP_SENDER}>'`,
         to: email,
         subject: `Verify your email to start using Brewica`,
-        text: `Hi ${username}! Thanks for signing up to Brewica. Before we can continue, we need to validate your email address. ${import.meta.env.APP_URL}/user/verify?t=${code}`,
-        html: `<p>Hi ${username}!</p> <p>Thanks for signing up to Brewica. Before we can continue, we need to validate your email address.</p><strong><a href="${import.meta.env.APP_URL}/user/verify?t=${code}" target="_blank">Verify email address</a></strong>`,
+        text: `Hi ${username}! Thanks for signing up to Brewica. Before we can continue, we need to validate your email address. ${process.env.APP_URL}/user/verify?t=${code}`,
+        html: `<p>Hi ${username}!</p> <p>Thanks for signing up to Brewica. Before we can continue, we need to validate your email address.</p><strong><a href="${process.env.APP_URL}/user/verify?t=${code}" target="_blank">Verify email address</a></strong>`,
     };
 
     try{
