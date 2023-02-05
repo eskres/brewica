@@ -6,7 +6,6 @@ import { faker } from '@faker-js/faker';
 import { User } from '../../models/User'
 import UserModel from '../../models/User';
 import { transport } from '../../../utils/nodemailer';
-import { SendMailOptions } from 'nodemailer';
 
 beforeAll(async () => {
     await connectDB();
@@ -30,7 +29,8 @@ describe('User POST /auth/signup', () => {
             username: username,
             emailAddress: faker.internet.email().toLowerCase(),
             password: password,
-            passwordConf: password
+            passwordConf: password,
+            token: faker.datatype.uuid()
         });
         
         const testUser: User = ({
@@ -62,7 +62,8 @@ describe('User POST /auth/signup', () => {
             username: faker.internet.userName(),
             emailAddress: emailAddress,
             password: password,
-            passwordConf: password
+            passwordConf: password,
+            token: faker.datatype.uuid()
         });
         
         const testUser: User = ({
@@ -153,6 +154,28 @@ describe('User POST /auth/signup', () => {
         expect(response.status).toEqual(400);
     })
     
+    test('send verification email once and receive no errors', async () => {
+        // Arrange
+        const password: string = faker.internet.password(15, false, /\w/, '_0');
+        
+        const testUser: User = ({
+            username: faker.internet.userName(),
+            emailAddress: faker.internet.email(),
+            password: password,
+            passwordConf: password
+        });
+        
+        // Act
+        const sendMail: SpyInstance = vi.spyOn(transport, 'sendMail');
+        const response: request.Response = await request(app).post("/auth/signup")
+        .send(testUser);        
+
+        // Assert
+        expect(sendMail).toBeCalledTimes(1);
+        expect(sendMail.mock.results[0].value.accepted[0]).toEqual(testUser.emailAddress);
+        expect(response.body.message).toEqual("Account created successfully");
+        expect(response.status).toEqual(200);
+    });
 
     test('catch non matching passwords, do not save, send error message to user', async () => {
         // Arrange
@@ -247,34 +270,11 @@ describe('User POST /auth/signup', () => {
         // Act
         const response: request.Response = await request(app).post("/auth/signup")
         .send(testUser)
-        const savedUser: User = await UserModel.findOne({emailAddress: testUser.emailAddress});
+        const savedUser: User = await UserModel.findOne({emailAddress: testUser.emailAddress});        
 
         // Assert
         expect(savedUser).toBeDefined;
         expect(savedUser.emailAddress).toEqual(testUser.emailAddress.toLocaleLowerCase());
-        expect(response.body.message).toEqual("Account created successfully");
-        expect(response.status).toEqual(200);
-    });
-
-    test('send verification email and receive no errors', async () => {
-        // Arrange
-        const password: string = faker.internet.password(15, false, /\w/, '_0');
-        
-        const testUser: User = ({
-            username: faker.internet.userName(),
-            emailAddress: faker.internet.email(),
-            password: password,
-            passwordConf: password
-        });
-        
-        // Act
-        const sendMail: SpyInstance = vi.spyOn(transport, 'sendMail');
-        const response: request.Response = await request(app).post("/auth/signup")
-        .send(testUser);        
-
-        // Assert
-        expect(sendMail).toBeCalledTimes(1);
-        expect(sendMail.mock.results[0].value.accepted[0]).toEqual(testUser.emailAddress);
         expect(response.body.message).toEqual("Account created successfully");
         expect(response.status).toEqual(200);
     });

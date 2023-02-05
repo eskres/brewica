@@ -1,4 +1,4 @@
-import mongoose = require('mongoose');
+import * as mongoose from 'mongoose';
 import { describe, it, beforeAll, afterAll, afterEach, expect } from 'vitest'
 import { connectDB, dropDB, dropCollections } from '../../../testUtils/mongoMemoryServer'
 import UserModel from '../../models/User';
@@ -21,7 +21,8 @@ describe('User Model / Schema', () => {
         const validUser = new UserModel({
             username: faker.internet.userName(),
             emailAddress: faker.internet.email().toLowerCase(),
-            password: faker.internet.password()
+            password: faker.internet.password(),
+            token: faker.datatype.uuid()
         });
         // act
         const savedUser = await validUser.save();
@@ -38,7 +39,8 @@ describe('User Model / Schema', () => {
             username: faker.internet.userName(),
             emailAddress: faker.internet.email().toLowerCase(),
             password: faker.internet.password(),
-            name: faker.name.firstName()
+            name: faker.name.firstName(),
+            token: faker.datatype.uuid()
         });
         // act
         const savedUserWithInvalidField = await userWithInvalidField.save();
@@ -69,7 +71,8 @@ describe('User Model / Schema', () => {
         const userWithoutRequiredField = new UserModel({
             username: 123,
             emailAddress: 123,
-            password: 123
+            password: 123,
+            token: faker.datatype.uuid()
         });
         // act
         let error: mongoose.Error.ValidationError;

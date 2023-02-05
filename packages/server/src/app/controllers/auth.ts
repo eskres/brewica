@@ -13,14 +13,15 @@ export const signupPost = async (req: Request, res: Response, next: NextFunction
     const username: string = req.body.username.toString().toLowerCase();
     const email: string = req.body.emailAddress.toString();
     const password: string = req.body.password.toString();
-    const code = crypto.randomUUID();
+    const token: string = crypto.randomUUID();
+    req.body.token = token;
 
     const info: SendMailOptions = {
         from: `'"Brewica" <${process.env.SMTP_SENDER}>'`,
         to: email,
         subject: `Verify your email to start using Brewica`,
-        text: `Hi ${username}! Thanks for signing up to Brewica. Before we can continue, we need to validate your email address. ${process.env.APP_URL}/user/verify?t=${code}`,
-        html: `<p>Hi ${username}!</p> <p>Thanks for signing up to Brewica. Before we can continue, we need to validate your email address.</p><strong><a href="${process.env.APP_URL}/user/verify?t=${code}" target="_blank">Verify email address</a></strong>`,
+        text: `Hi ${username}! Thanks for signing up to Brewica. Before we can continue, we need to validate your email address. ${process.env.APP_URL}/user/verify?t=${token}`,
+        html: `<p>Hi ${username}!</p> <p>Thanks for signing up to Brewica. Before we can continue, we need to validate your email address.</p><strong><a href="${process.env.APP_URL}/user/verify?t=${token}" target="_blank">Verify email address</a></strong>`,
     };
 
     try{
@@ -78,7 +79,7 @@ export const signupPost = async (req: Request, res: Response, next: NextFunction
             return res.status(500).json({message:'Email verification failed please contact site administrator'});
         })
         // Save to database
-        const user = new UserModel(req.body)
+        const user = new UserModel(req.body);
         user.save()
         .then(()=>{
             return res.status(200).json({message: "Account created successfully"});
