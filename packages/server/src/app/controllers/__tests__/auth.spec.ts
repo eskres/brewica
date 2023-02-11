@@ -247,6 +247,7 @@ describe('User POST /auth/signup', () => {
         
         // Get stored password from the db
         const savedUser: User = await UserModel.findOne({emailAddress: testUser.emailAddress});
+        console.log(savedUser.expiresAt);
         
         // Assert
         // // Check password stored in db does not match password variable
