@@ -1,7 +1,7 @@
 import * as mongoose from 'mongoose';
 import { describe, it, beforeAll, afterAll, afterEach, expect } from 'vitest'
 import { connectDB, dropDB, dropCollections } from '../../../testUtils/mongoMemoryServer'
-import UserModel from '../../models/User';
+import User from '../../models/User';
 import { faker } from '@faker-js/faker';
 
 beforeAll(async () => {
@@ -18,7 +18,7 @@ describe('User Model / Schema', () => {
     
     it('should successfully save a new user', async () => {
         // arrange
-        const validUser = new UserModel({
+        const validUser = new User({
             username: faker.internet.userName(),
             emailAddress: faker.internet.email().toLowerCase(),
             password: faker.internet.password(),
@@ -34,11 +34,12 @@ describe('User Model / Schema', () => {
         expect(savedUser.token).toBe(validUser.token);
         expect(savedUser.expiresAt).toBe(validUser.expiresAt);        
         expect(savedUser.expiresAt.getTime()).toBeGreaterThan(new Date().getTime());
+        expect(savedUser.expiresAt.getTime()).toBeLessThan(new Date().getTime() + 24 * 60 * 60 * 1000);
     }); 
 
     it('should successfully save a new user but ignore any fields that are not in the model/schema', async () => {
         // arrange
-        const userWithInvalidField = new UserModel({
+        const userWithInvalidField = new User({
             username: faker.internet.userName(),
             emailAddress: faker.internet.email().toLowerCase(),
             password: faker.internet.password(),
@@ -54,7 +55,7 @@ describe('User Model / Schema', () => {
 
     it('should fail when attempting to save a user without all of the required fields', async () => {
         // arrange
-        const userWithoutRequiredField = new UserModel({
+        const userWithoutRequiredField = new User({
             userName: faker.internet.userName(),
         });
         // act
@@ -71,7 +72,7 @@ describe('User Model / Schema', () => {
     });
     it('should fail when attempting to save a user with an invalid field', async () => {
         // arrange
-        const userWithoutRequiredField = new UserModel({
+        const userWithoutRequiredField = new User({
             username: "",
             emailAddress: "",
             password: 123,

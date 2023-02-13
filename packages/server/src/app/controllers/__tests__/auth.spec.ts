@@ -1,10 +1,9 @@
-import { describe, test, beforeAll, afterAll, beforeEach, afterEach, expect, vi, SpyInstance } from 'vitest'
+import { describe, test, beforeAll, afterAll, afterEach, expect, vi, SpyInstance } from 'vitest'
 import { connectDB, dropDB, dropCollections } from '../../../testUtils/mongoMemoryServer'
 import request = require('supertest')
 import { app } from '../../../main'
 import { faker } from '@faker-js/faker';
-import { User } from '../../models/User'
-import UserModel from '../../models/User';
+import User, { IUser } from '../../models/User'
 import { transport } from '../../../utils/nodemailer';
 
 beforeAll(async () => {
@@ -25,7 +24,7 @@ describe('User POST /auth/signup', () => {
         const password: string = faker.internet.password(15, false, /\w/, '_0');
         const username: string = faker.internet.userName();
         
-        const existingUser = new UserModel({
+        const existingUser = new User({
             username: username,
             emailAddress: faker.internet.email().toLowerCase(),
             password: password,
@@ -33,7 +32,7 @@ describe('User POST /auth/signup', () => {
             token: faker.datatype.uuid()
         });
         
-        const testUser: User = ({
+        const testUser: IUser = ({
             username: username,
             emailAddress: faker.internet.email().toLowerCase(),
             password: password,
@@ -43,7 +42,7 @@ describe('User POST /auth/signup', () => {
         // Act
         existingUser.save();
         const response: request.Response = await request(app).post("/auth/signup").send(testUser);
-        const savedUser: User = await UserModel.findOne({emailAddress: testUser.emailAddress});
+        const savedUser: IUser = await User.findOne({emailAddress: testUser.emailAddress});
         
         // Assert
         expect(savedUser).not.toBeDefined;
@@ -58,7 +57,7 @@ describe('User POST /auth/signup', () => {
         const password: string = faker.internet.password(15, false, /\w/, '_0');
         const emailAddress: string = faker.internet.email().toLowerCase();
         
-        const existingUser = new UserModel({
+        const existingUser = new User({
             username: faker.internet.userName(),
             emailAddress: emailAddress,
             password: password,
@@ -66,7 +65,7 @@ describe('User POST /auth/signup', () => {
             token: faker.datatype.uuid()
         });
         
-        const testUser: User = ({
+        const testUser: IUser = ({
             username: faker.internet.userName(),
             emailAddress: emailAddress,
             password: password,
@@ -76,7 +75,7 @@ describe('User POST /auth/signup', () => {
         // Act
         existingUser.save();
         const response: request.Response = await request(app).post("/auth/signup").send(testUser);
-        const savedUser: User = await UserModel.findOne({emailAddress: testUser.emailAddress});
+        const savedUser: IUser = await User.findOne({emailAddress: testUser.emailAddress});
         
         // Assert
         expect(savedUser).not.toBeDefined;
@@ -90,7 +89,7 @@ describe('User POST /auth/signup', () => {
         // Arrange
         const password: string = faker.internet.password(15, false, /\w/, '_0');
 
-        const testUser: User = ({
+        const testUser: IUser = ({
             // uuid is too long to be a valid username
             username: faker.datatype.uuid(),
             emailAddress: faker.internet.email().toLowerCase(),
@@ -100,7 +99,7 @@ describe('User POST /auth/signup', () => {
         
         // Act        
         const response: request.Response = await request(app).post("/auth/signup").send(testUser);
-        const savedUser: User = await UserModel.findOne({emailAddress: testUser.emailAddress});
+        const savedUser: IUser = await User.findOne({emailAddress: testUser.emailAddress});
         
         // Assert
         expect(savedUser).not.toBeDefined;
@@ -113,7 +112,7 @@ describe('User POST /auth/signup', () => {
         // Arrange
         const password: string = faker.internet.password(15, false, /\w/, '_0');
 
-        const testUser: User = ({
+        const testUser: IUser = ({
             username: '$%^',
             emailAddress: faker.internet.email().toLowerCase(),
             password: password,
@@ -122,7 +121,7 @@ describe('User POST /auth/signup', () => {
         
         // Act
         const response: request.Response = await request(app).post("/auth/signup").send(testUser)
-        const savedUser: User = await UserModel.findOne({emailAddress: testUser.emailAddress});
+        const savedUser: IUser = await User.findOne({emailAddress: testUser.emailAddress});
         
         // Assert
         expect(savedUser).not.toBeDefined;
@@ -136,7 +135,7 @@ describe('User POST /auth/signup', () => {
         // Arrange
         const password: string = faker.internet.password(15, false, /\w/, '_0');
 
-        const testUser: User = ({
+        const testUser: IUser = ({
             username: faker.internet.userName(),
             emailAddress: '$%^@123',
             password: password,
@@ -146,7 +145,7 @@ describe('User POST /auth/signup', () => {
         // Act
         const response: request.Response = await request(app).post("/auth/signup")
         .send(testUser)
-        const savedUser: User = await UserModel.findOne({emailAddress: testUser.emailAddress});
+        const savedUser: IUser = await User.findOne({emailAddress: testUser.emailAddress});
 
         // Assert
         expect(savedUser).not.toBeDefined;
@@ -158,7 +157,7 @@ describe('User POST /auth/signup', () => {
         // Arrange
         const password: string = faker.internet.password(15, false, /\w/, '_0');
         
-        const testUser: User = ({
+        const testUser: IUser = ({
             username: faker.internet.userName(),
             emailAddress: faker.internet.email(),
             password: password,
@@ -181,7 +180,7 @@ describe('User POST /auth/signup', () => {
         // Arrange
         const password: string = faker.internet.password(15, false, /\w/, '_0');
 
-        const testUser: User = ({
+        const testUser: IUser = ({
             username: faker.internet.userName(),
             emailAddress: faker.internet.email(),
             password: password,
@@ -198,7 +197,7 @@ describe('User POST /auth/signup', () => {
 
     test('catch an invalid password (regex length), do not save, send error message to user', async () => {
         // Arrange
-        const testUser: User = ({
+        const testUser: IUser = ({
             username: faker.internet.userName(),
             emailAddress: faker.internet.email().toLowerCase(),
             password: 123,
@@ -215,7 +214,7 @@ describe('User POST /auth/signup', () => {
 
     test('catch an invalid password (regex characters), do not save, send error message to user', async () => {
         // Arrange
-        const testUser: User = ({
+        const testUser: IUser = ({
             username: faker.internet.userName(),
             emailAddress: faker.internet.email().toLowerCase(),
             password: 'üîøåéüîøåé',
@@ -235,7 +234,7 @@ describe('User POST /auth/signup', () => {
         // Arrange
         const password: string = faker.internet.password(15, false, /\w/, '_0');
 
-        const testUser: User = ({
+        const testUser: IUser = ({
             username: faker.internet.userName(),
             emailAddress: faker.internet.email(),
             password: password,
@@ -246,8 +245,7 @@ describe('User POST /auth/signup', () => {
         .send(testUser);
         
         // Get stored password from the db
-        const savedUser: User = await UserModel.findOne({emailAddress: testUser.emailAddress});
-        console.log(savedUser.expiresAt);
+        const savedUser: IUser = await User.findOne({emailAddress: testUser.emailAddress});
         
         // Assert
         // // Check password stored in db does not match password variable
@@ -257,11 +255,11 @@ describe('User POST /auth/signup', () => {
         expect(savedUser.password).toContain('argon2id')
     });
 
-    test('saves the user to MongoDB and sends a success message to user', async () => {
+    test('saves the user to MongoDB and generates and expiresAt time in the future', async () => {
         // Arrange
         const password: string = faker.internet.password(15, false, /\w/, '_0');
 
-        const testUser: User = ({
+        const testUser: IUser = ({
             username: faker.internet.userName(),
             emailAddress: faker.internet.email(),
             password: password,
@@ -271,7 +269,34 @@ describe('User POST /auth/signup', () => {
         // Act
         const response: request.Response = await request(app).post("/auth/signup")
         .send(testUser)
-        const savedUser: User = await UserModel.findOne({emailAddress: testUser.emailAddress});        
+        const savedUser: IUser = await User.findOne({emailAddress: testUser.emailAddress});        
+
+        console.log(savedUser.expiresAt.getTime() - new Date().getTime())
+
+        // Assert
+        expect(savedUser).toBeDefined;
+        expect(savedUser.expiresAt).toBeDefined;
+        expect(savedUser.expiresAt.getTime() - new Date().getTime()).toBeGreaterThan(23.99 * 60 * 60 * 1000);
+        expect(savedUser.expiresAt.getTime() - new Date().getTime()).toBeLessThan(24 * 60 * 60 * 1000);
+        expect(response.body.message).toEqual("Account created successfully");
+        expect(response.status).toEqual(200);
+    });
+
+    test('saves the user to MongoDB and sends a success message to user', async () => {
+        // Arrange
+        const password: string = faker.internet.password(15, false, /\w/, '_0');
+
+        const testUser: IUser = ({
+            username: faker.internet.userName(),
+            emailAddress: faker.internet.email(),
+            password: password,
+            passwordConf: password
+        });
+        
+        // Act
+        const response: request.Response = await request(app).post("/auth/signup")
+        .send(testUser)
+        const savedUser: IUser = await User.findOne({emailAddress: testUser.emailAddress});        
 
         // Assert
         expect(savedUser).toBeDefined;

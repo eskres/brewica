@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express'
 // import mongoose = require('mongoose');
-import UserModel, { User } from '../models/User';
+import User from '../models/User';
 import * as argon2 from "argon2";
 import * as dns from "dns"
 import  { transport } from '../../utils/nodemailer'
@@ -50,7 +50,7 @@ export const signupPost = async (req: Request, res: Response, next: NextFunction
     }
     
     // Validate username
-    const usernameExists = await UserModel.findOne({username: username}).exec();
+    const usernameExists = await User.findOne({username: username}).exec();
     if (usernameExists) {    
         return(res.status(409).json({message:`Username "${username}" is already registered`}));
     }
@@ -59,10 +59,10 @@ export const signupPost = async (req: Request, res: Response, next: NextFunction
         return res.status(400).json({message:'Usernames must be no longer than 28 characters and are not case sensitive. Only letters, numbers, dashes and underscores are permitted.'});
 
     }
-    req.body.username = username; 
+    req.body.username = username;
         
     // Validate email
-    const emailExists = await UserModel.findOne({emailAddress: email}).exec();
+    const emailExists = await User.findOne({emailAddress: email}).exec();
     if (emailExists) {
         return (res.status(409).json({message:`Email address "${email}" is already registered`}));
     } 
@@ -79,7 +79,7 @@ export const signupPost = async (req: Request, res: Response, next: NextFunction
             return res.status(500).json({message:'Email verification failed please contact site administrator'});
         })
         // Save to database
-        const user = new UserModel(req.body);
+        const user = new User(req.body);
         user.save()
         .then(()=>{
             return res.status(200).json({message: "Account created successfully"});

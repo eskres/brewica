@@ -1,16 +1,16 @@
 import * as mongoose from 'mongoose';
 
-export interface User {
+export interface IUser {
   username: string;
   emailAddress: string;
   password: string;
   passwordConf: string;
   token?: string;
-  verified: boolean;
-  expiresAt: Date;
-}
+  verified?: boolean;
+  expiresAt?: Date;
+};
 
-const userSchema = new mongoose.Schema<User>({ 
+const userSchema = new mongoose.Schema<IUser>({ 
     username: { type: String, required: true, lowercase: true, unique: true },
     emailAddress: { type: String, required: true, lowercase: true, unique: true },
     password: { type: String,
@@ -22,6 +22,11 @@ const userSchema = new mongoose.Schema<User>({
     expiresAt: { type: Date, default: () => Date.now() + 24 * 60 * 60 * 1000}
 },{ timestamps: true });
     
-const UserModel: mongoose.Model<User> = mongoose.model<User>('UserModel', userSchema);
+userSchema.index({expiresAt: 1}, {
+  expireAfterSeconds: 0,
+  partialFilterExpression: { 'verified': false }
+});
 
-export default UserModel;
+const User: mongoose.Model<IUser> = mongoose.model<IUser>('user', userSchema);
+
+export default User;
