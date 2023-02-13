@@ -31,6 +31,9 @@ describe('User Model / Schema', () => {
         expect(savedUser.username).toBe(validUser.username);
         expect(savedUser.emailAddress).toBe(validUser.emailAddress);
         expect(savedUser.password).toBe(validUser.password);
+        expect(savedUser.token).toBe(validUser.token);
+        expect(savedUser.expiresAt).toBe(validUser.expiresAt);        
+        expect(savedUser.expiresAt.getTime()).toBeGreaterThan(new Date().getTime());
     }); 
 
     it('should successfully save a new user but ignore any fields that are not in the model/schema', async () => {
@@ -69,8 +72,8 @@ describe('User Model / Schema', () => {
     it('should fail when attempting to save a user with an invalid field', async () => {
         // arrange
         const userWithoutRequiredField = new UserModel({
-            username: 123,
-            emailAddress: 123,
+            username: "",
+            emailAddress: "",
             password: 123,
             token: faker.datatype.uuid()
         });
@@ -86,7 +89,7 @@ describe('User Model / Schema', () => {
         // assert
         expect(error).toBeInstanceOf(mongoose.Error.ValidationError);
         expect(error.errors.password).toBeDefined();
-        // expect(error.errors.username).toBeDefined();
-        // expect(error.errors.emailAddress).toBeDefined();
+        expect(error.errors.username).toBeDefined();
+        expect(error.errors.emailAddress).toBeDefined();
     });
 })
