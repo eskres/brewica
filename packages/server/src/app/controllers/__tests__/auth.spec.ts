@@ -271,8 +271,6 @@ describe('User POST /auth/signup', () => {
         .send(testUser)
         const savedUser: IUser = await User.findOne({emailAddress: testUser.emailAddress});        
 
-        console.log(savedUser.expiresAt.getTime() - new Date().getTime())
-
         // Assert
         expect(savedUser).toBeDefined;
         expect(savedUser.expiresAt).toBeDefined;
