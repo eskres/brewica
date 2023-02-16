@@ -200,8 +200,8 @@ describe('User POST /auth/signup', () => {
         const testUser: IUser = ({
             username: faker.internet.userName(),
             emailAddress: faker.internet.email().toLowerCase(),
-            password: 123,
-            passwordConf: 123
+            password: '123',
+            passwordConf: '123'
         });
         
         // Act
