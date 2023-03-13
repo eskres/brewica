@@ -4,8 +4,8 @@
     "allowJs": false,
     "esModuleInterop": false,
     "allowSyntheticDefaultImports": true,
-    "strict": false,
-    "types": ["vite/client"]
+    "strict": true,
+    "types": ["vite/client", "vitest"]
   },
   "files": [],
   "include": [],

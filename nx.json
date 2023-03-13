@@ -1,6 +1,6 @@
 {
   "$schema": "./node_modules/nx/schemas/nx-schema.json",
-  "npmScope": "brewica.com",
+  "npmScope": "brewica",
   "affected": {
     "defaultBase": "master"
   },
@@ -9,7 +9,7 @@
       "runner": "@nrwl/nx-cloud",
       "options": {
         "cacheableOperations": ["build", "lint", "test", "e2e"],
-        "accessToken": "Y2Y2NzAwNjctZmJjYS00MjU1LTgyMGUtMzRiMzYzYTU2MmU1fHJlYWQtd3JpdGU="
+        "accessToken": "NzBlNTM4OGMtOWMyOS00YTE3LWIxNTAtYjI0NzkxZWQ1OGZlfHJlYWQtd3JpdGU="
       }
     }
   },
@@ -25,7 +25,11 @@
       "inputs": ["default", "^production", "{workspaceRoot}/jest.preset.js"]
     },
     "lint": {
-      "inputs": ["default", "{workspaceRoot}/.eslintrc.json"]
+      "inputs": [
+        "default",
+        "{workspaceRoot}/.eslintrc.json",
+        "{workspaceRoot}/.eslintignore"
+      ]
     }
   },
   "namedInputs": {
@@ -56,10 +60,8 @@
       },
       "library": {
         "style": "scss",
-        "linter": "eslint",
-        "unitTestRunner": "vitest"
+        "linter": "eslint"
       }
     }
-  },
-  "defaultProject": "client"
+  }
 }
