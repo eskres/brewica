@@ -3,7 +3,8 @@ import { connectDB, dropDB, dropCollections } from '../../../testUtils/mongoMemo
 import supertest from 'supertest'
 import { app } from '../../../main'
 import { faker } from '@faker-js/faker';
-import User, { IUser } from '../../models/User'
+import User from '../../models/User'
+import type { IUser, ISignIn } from '../../../../../types'
 import { transport } from '../../../utils/nodemailerTransport';
 
 beforeAll(async () => {
@@ -303,4 +304,70 @@ describe('User POST /auth/signup', () => {
         expect(response.status).toEqual(200);
     });
 
-})
+});
+
+describe('User POST /auth/signin', () => {
+
+    let savedUser: IUser;
+    const password: string = faker.internet.password(15, false, /\w/, '_0');
+    const newUser: IUser = ({
+        username: faker.internet.userName(),
+        emailAddress: faker.internet.email(),
+        password: password,
+        passwordConf: password
+    });
+
+    beforeAll(async () => {
+        await supertest(app).post("/auth/signup").send(newUser);
+        return savedUser = await User.findOne({emailAddress: newUser.emailAddress});
+    });
+
+    test('catch an incorrect password and send error message to user', async () => {
+        
+        // Arrange
+        const testUser: ISignIn = ({
+            emailAddress: savedUser.emailAddress,
+            password: 'password',
+        });
+
+        // Act
+        const response: supertest.Response = await supertest(app).post("/auth/signin")
+        .send(testUser)
+
+        // Assert
+        expect(response.status).toEqual(400);
+
+    })
+
+    test('catch a non existant account and send error message to user', async () => {
+        // Arrange
+        const testUser: ISignIn = ({
+            emailAddress: 'test@test.com',
+            password: password,
+        });
+
+        // Act
+        const response: supertest.Response = await supertest(app).post("/auth/signin")
+        .send(testUser)
+
+        // Assert
+        expect(response.status).toEqual(400);
+    })
+
+    test('a successful sign in should respond with a JWT', async () => {
+        // Arrange
+        const testUser: ISignIn = ({
+            emailAddress: savedUser.emailAddress,
+            password: password,
+        });
+
+        // Act
+        const response: supertest.Response = await supertest(app).post("/auth/signin")
+        .send(testUser)
+
+        // Assert
+        expect(response.status).toEqual(200);
+        expect(response.body.token).toBeDefined();
+    })
+
+});

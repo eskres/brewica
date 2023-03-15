@@ -1,14 +1,5 @@
 import * as mongoose from 'mongoose';
-
-export interface IUser {
-  username: string;
-  emailAddress: string;
-  password: string;
-  passwordConf: string;
-  token?: string;
-  verified?: boolean;
-  expiresAt?: Date;
-};
+import type { IUser } from '../../../../types'
 
 const userSchema = new mongoose.Schema<IUser>({ 
     username: { type: String, required: true, lowercase: true, unique: true },
