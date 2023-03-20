@@ -1,15 +1,13 @@
 import type { NextFunction, Request, Response } from 'express'
 import User from '../models/User';
 import * as argon2 from "argon2";
-import * as dns from "dns"
-import  { transport } from '../../utils/nodemailerTransport'
+import * as dns from "dns";
+import  { transport } from '../../utils/nodemailerTransport';
 import type { SendMailOptions } from 'nodemailer';
 import { randomUUID } from 'crypto';
+import jwt from 'jsonwebtoken';
 
-// Require jsonwebtoken
-// import jwt = require("jsonwebtoken")
-
-export const signupPost = async (req: Request, res: Response, next: NextFunction) => {
+export const signUpPost = async (req: Request, res: Response, next: NextFunction) => {
     const username: string = req.body.username.toString().toLowerCase();
     const email: string = req.body.emailAddress.toString();
     const password: string = req.body.password.toString();
@@ -95,4 +93,42 @@ export const signupPost = async (req: Request, res: Response, next: NextFunction
         // How best to handle errors here???
         next(err);
     };
+}
+
+export const signInPost = async(req: Request, res: Response) => {
+    const {emailAddress, password} = req.body;
+    try{
+        const user = await User.findOne({emailAddress})
+        
+        if(!user){
+            return res.status(400).json({message: "Account not found"});
+        }    
+        
+        const passwordMatch = await argon2.verify(user.password, password)
+        
+        if(!passwordMatch){
+            return res.status(400).json({message: "Password incorrect"});
+        }
+
+        if (!res.headersSent) {
+            const payload = {
+                user:{
+                    id: user._id,
+                }
+            }
+    
+            jwt.sign(
+                payload,
+                process.env['SECRET'] as string,
+                { expiresIn: "10m"},
+                (err, token) => {
+                    if(err) throw err;
+                    res.json({token: token}).status(200);
+                }
+            )
+        }
+    } catch(error) {
+        console.log(error)
+        res.status(500).json({"message": "Sign in failed"});
+    }
 }

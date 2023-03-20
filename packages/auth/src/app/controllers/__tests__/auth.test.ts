@@ -1,11 +1,12 @@
-import 'jest'
-import { connectDB, dropDB, dropCollections } from '../../../testUtils/mongoMemoryServer'
-import supertest from 'supertest'
-import { app } from '../../../main'
+import 'jest';
+import { connectDB, dropDB, dropCollections } from '../../../testUtils/mongoMemoryServer';
+import supertest from 'supertest';
+import { app } from '../../../main';
 import { faker } from '@faker-js/faker';
-import User from '../../models/User'
-import type { IUser, ISignIn } from '../../../../../types'
+import User from '../../models/User';
+import type { IUser, ISignIn } from '../../../../../types';
 import { transport } from '../../../utils/nodemailerTransport';
+import jwt from 'jsonwebtoken';
 
 beforeAll(async () => {
     await connectDB();
@@ -296,7 +297,7 @@ describe('User POST /auth/signup', () => {
         const response: supertest.Response = await supertest(app).post("/auth/signup")
         .send(testUser)
         const savedUser: IUser = await User.findOne({emailAddress: testUser.emailAddress});        
-
+        
         // Assert
         expect(savedUser).toBeDefined;
         expect(savedUser.emailAddress).toEqual(testUser.emailAddress.toLocaleLowerCase());
@@ -310,6 +311,7 @@ describe('User POST /auth/signin', () => {
 
     let savedUser: IUser;
     const password: string = faker.internet.password(15, false, /\w/, '_0');
+
     const newUser: IUser = ({
         username: faker.internet.userName(),
         emailAddress: faker.internet.email(),
@@ -331,13 +333,14 @@ describe('User POST /auth/signin', () => {
         });
 
         // Act
-        const response: supertest.Response = await supertest(app).post("/auth/signin")
+        const response = await supertest(app).post("/auth/signin")
         .send(testUser)
 
         // Assert
         expect(response.status).toEqual(400);
+        expect(response.body.message).toEqual("Password incorrect");
 
-    })
+    });
 
     test('catch a non existant account and send error message to user', async () => {
         // Arrange
@@ -347,12 +350,14 @@ describe('User POST /auth/signin', () => {
         });
 
         // Act
-        const response: supertest.Response = await supertest(app).post("/auth/signin")
+        const response = await supertest(app).post("/auth/signin")
         .send(testUser)
 
         // Assert
         expect(response.status).toEqual(400);
-    })
+        expect(response.body.message).toEqual("Account not found");
+
+    });
 
     test('a successful sign in should respond with a JWT', async () => {
         // Arrange
@@ -362,12 +367,14 @@ describe('User POST /auth/signin', () => {
         });
 
         // Act
-        const response: supertest.Response = await supertest(app).post("/auth/signin")
-        .send(testUser)
+        const response: supertest.Response = await supertest(app).post("/auth/signin").send(testUser);
+        const token = jwt.verify(response.body.token, process.env['SECRET']);
 
         // Assert
         expect(response.status).toEqual(200);
         expect(response.body.token).toBeDefined();
-    })
+        expect(token).toEqual(expect.objectContaining({user:{id: savedUser._id.toString()}}));
+
+    });
 
 });

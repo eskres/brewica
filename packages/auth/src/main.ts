@@ -17,6 +17,7 @@ const port = process.env['PORT'] ? Number(process.env['PORT']) : 3001;
 export const app: express.Application = express();
 
 app.use(express.json());
+app.use(express.urlencoded());
 
 app.use('/assets', express.static(path.join(__dirname, 'assets')));
 
