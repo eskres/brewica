@@ -359,7 +359,7 @@ describe('User POST /auth/signin', () => {
 
     });
 
-    test('a successful sign in should respond with a JWT', async () => {
+    test('a successful sign in should respond with JWT access token and refresh token', async () => {
         // Arrange
         const testUser: ISignIn = ({
             emailAddress: savedUser.emailAddress,
@@ -368,12 +368,18 @@ describe('User POST /auth/signin', () => {
 
         // Act
         const response: supertest.Response = await supertest(app).post("/auth/signin").send(testUser);
-        const token = jwt.verify(response.body.token, process.env['SECRET']);
 
+        
+        const accessToken = jwt.verify(response.body.accessToken, process.env['ACCESS_TOKEN_SECRET']);
+        const refreshToken = jwt.verify(response.body.refreshToken, process.env['REFRESH_TOKEN_SECRET']);
+        
+        
         // Assert
         expect(response.status).toEqual(200);
-        expect(response.body.token).toBeDefined();
-        expect(token).toEqual(expect.objectContaining({user:{id: savedUser._id.toString()}}));
+        expect(response.body.accessToken).toBeDefined();
+        expect(accessToken).toEqual(expect.objectContaining({sub: savedUser._id.toString()}));
+        expect(response.body.refreshToken).toBeDefined();
+        expect(refreshToken).toEqual(expect.objectContaining({sub: savedUser._id.toString()}));
 
     });
 
