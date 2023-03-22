@@ -7,6 +7,8 @@ import User from '../../models/User';
 import type { IUser, ISignIn } from '../../../../../types';
 import { transport } from '../../../utils/nodemailerTransport';
 import jwt from 'jsonwebtoken';
+import * as setCookie from 'set-cookie-parser'
+
 
 beforeAll(async () => {
     await connectDB();
@@ -307,7 +309,7 @@ describe('User POST /auth/signup', () => {
 
 });
 
-describe('User POST /auth/signin', () => {
+describe.only('User POST /auth/signin', () => {
 
     let savedUser: IUser;
     const password: string = faker.internet.password(15, false, /\w/, '_0');
@@ -368,19 +370,14 @@ describe('User POST /auth/signin', () => {
 
         // Act
         const response: supertest.Response = await supertest(app).post("/auth/signin").send(testUser);
-
+        const cookie = setCookie.parse(response, {map: true});        
         
-        const accessToken = jwt.verify(response.body.accessToken, process.env['ACCESS_TOKEN_SECRET']);
-        const refreshToken = jwt.verify(response.body.refreshToken, process.env['REFRESH_TOKEN_SECRET']);
-        
+        const accessToken = jwt.verify(cookie.accessToken.value, process.env['ACCESS_TOKEN_SECRET']);
+        const refreshToken = jwt.verify(cookie.refreshToken.value, process.env['REFRESH_TOKEN_SECRET']);
         
         // Assert
         expect(response.status).toEqual(200);
-        expect(response.body.accessToken).toBeDefined();
         expect(accessToken).toEqual(expect.objectContaining({sub: savedUser._id.toString()}));
-        expect(response.body.refreshToken).toBeDefined();
         expect(refreshToken).toEqual(expect.objectContaining({sub: savedUser._id.toString()}));
-
     });
-
 });

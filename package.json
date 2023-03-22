@@ -78,6 +78,7 @@
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "react-router-dom": "6.4.3",
+    "set-cookie-parser": "^2.6.0",
     "tslib": "^2.3.0"
   }
 }
