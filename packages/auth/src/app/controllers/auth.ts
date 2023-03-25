@@ -5,7 +5,8 @@ import * as dns from "dns";
 import  { transport } from '../../utils/nodemailerTransport';
 import type { SendMailOptions } from 'nodemailer';
 import { randomUUID } from 'crypto';
-import jwt from 'jsonwebtoken';
+import * as jose from 'jose';
+import { ACCESS_TOKEN_SECRET, REFRESH_TOKEN_SECRET } from '../../../jwks'
 
 export const signUpPost = async (req: Request, res: Response, next: NextFunction) => {
     const username: string = req.body.username.toString().toLowerCase();
@@ -110,22 +111,41 @@ export const signInPost = async(req: Request, res: Response) => {
             return res.status(400).json({message: "Password incorrect"});
         }
 
-        if (!res.headersSent) {
+        if (!res.headersSent) {           
+            
+            // To generate new key pairs...
+            // const { publicKey, privateKey } = generateKeyPairSync('ed25519');
+            // console.log(publicKey.export({format: 'jwk'}))
+            // console.log(privateKey.export({format: 'jwk'}))
+
+            const accessSecret = await jose.importJWK(ACCESS_TOKEN_SECRET, 'EdDSA');
+            const refreshSecret = await jose.importJWK(REFRESH_TOKEN_SECRET, 'EdDSA');
+
             const payload = {
-                user:{
-                    id: user._id,
-                }
+                    sub: user._id,
             }
     
-            jwt.sign(
-                payload,
-                process.env['SECRET'] as string,
-                { expiresIn: "10m"},
-                (err, token) => {
-                    if(err) throw err;
-                    res.json({token: token}).status(200);
-                }
-            )
+            const accessToken = await new jose.SignJWT(payload)
+            .setProtectedHeader({alg: 'EdDSA'})
+            .setIssuedAt()
+            .setIssuer('https://auth.brewica.com')
+            .setAudience('https://www.brewica.com')
+            .setExpirationTime('10m')
+            .sign(accessSecret)
+                
+            res.cookie("__Secure-accessToken", accessToken, {httpOnly: true, secure: true, sameSite: "strict", maxAge: 600_000})
+            
+            const refreshToken = await new jose.SignJWT(payload)
+            .setProtectedHeader({alg: 'EdDSA'})
+            .setIssuedAt()
+            .setIssuer('https://auth.brewica.com')
+            .setAudience('https://www.brewica.com')
+            .setExpirationTime('60m')
+            .sign(refreshSecret)
+
+            res.cookie("__Secure-refreshToken", refreshToken, {httpOnly: true, secure: true, sameSite: "strict", maxAge: 3_600_000})
+
+            return res.status(200).send()
         }
     } catch(error) {
         console.log(error)

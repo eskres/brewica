@@ -36,6 +36,7 @@ testem.log
 .env
 /planning
 mocks
+jwks.ts
 
 # System Files
 .DS_Store
