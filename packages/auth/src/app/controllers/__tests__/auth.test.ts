@@ -374,17 +374,17 @@ describe('User POST /auth/signin', () => {
 
         // Act
         const response: supertest.Response = await supertest(app).post("/auth/signin").send(testUser);
-        const cookie = setCookie.parse(response);       
+        const cookie = setCookie.parse(response);
         
         const accessToken = await jose.jwtVerify(cookie[0].value, accessSecret);
-        const refreshToken = await jose.jwtVerify(cookie[1].value, refreshSecret);       
+        const refreshToken = await jose.jwtVerify(cookie[1].value, refreshSecret);
         
         // Assert
         expect(response.status).toEqual(200);
         expect(cookie[0].name).toEqual('__Secure-accessToken');
         expect(cookie[1].name).toEqual('__Secure-refreshToken');
         expect(cookie[0].value).not.toEqual(cookie[1].value);
-        expect(accessToken.payload).toEqual(expect.objectContaining({sub: savedUser._id.toString()}));
-        expect(refreshToken.payload).toEqual(expect.objectContaining({sub: savedUser._id.toString()}));
+        expect(accessToken.payload).toEqual(expect.objectContaining({email: savedUser.emailAddress, sub: savedUser._id.toString()}));
+        expect(refreshToken.payload).toEqual(expect.objectContaining({email: savedUser.emailAddress, sub: savedUser._id.toString()}));
     });
 });
