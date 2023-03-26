@@ -6,7 +6,7 @@ import  { transport } from '../../utils/nodemailerTransport';
 import type { SendMailOptions } from 'nodemailer';
 import { randomUUID } from 'crypto';
 import * as jose from 'jose';
-import { ACCESS_TOKEN_SECRET, REFRESH_TOKEN_SECRET } from '../../../jwks'
+import { ACCESS_TOKEN_SECRET, REFRESH_TOKEN_SECRET } from '../../../jwks';
 
 export const signUpPost = async (req: Request, res: Response, next: NextFunction) => {
     const username: string = req.body.username.toString().toLowerCase();
@@ -21,7 +21,7 @@ export const signUpPost = async (req: Request, res: Response, next: NextFunction
         subject: `Verify your email to start using Brewica`,
         text: `Hi ${username}! Thanks for signing up to Brewica. Before we can continue, we need to validate your email address. ${process.env['APP_URL']}/user/verify?t=${token}`,
         html: `<p>Hi ${username}!</p> <p>Thanks for signing up to Brewica. Before we can continue, we need to validate your email address.</p><strong><a href="${process.env['APP_URL']}/user/verify?t=${token}" target="_blank">Verify email address</a></strong>`,
-    };
+    }
 
     try{
     
@@ -93,24 +93,32 @@ export const signUpPost = async (req: Request, res: Response, next: NextFunction
     } catch(err: unknown) {
         // How best to handle errors here???
         next(err);
-    };
+    }
 }
 
 export const signInPost = async(req: Request, res: Response) => {
     const {emailAddress, password} = req.body;
+
+    async function createToken(email: string, sub: string, exp: string, secret: jose.KeyLike | Uint8Array) {
+        return new jose.SignJWT({email: email})
+            .setSubject(sub)
+            .setProtectedHeader({alg: 'EdDSA'})
+            .setIssuedAt()
+            .setIssuer('https://auth.brewica.com')
+            .setAudience('https://www.brewica.com')
+            .setExpirationTime(exp)
+            .sign(secret);
+    }
+
     try{
         const user = await User.findOne({emailAddress})
         
-        if(!user){
-            return res.status(400).json({message: "Account not found"});
-        }    
+        if(!user){ return res.status(400).json({message: "Account not found"}); }
         
-        const passwordMatch = await argon2.verify(user.password, password)
+        const passwordMatch = await argon2.verify(user.password, password);
         
-        if(!passwordMatch){
-            return res.status(400).json({message: "Password incorrect"});
-        }
-
+        if(!passwordMatch){ return res.status(400).json({message: "Password incorrect"}); }
+        
         if (!res.headersSent) {           
             
             // To generate new key pairs...
@@ -121,31 +129,14 @@ export const signInPost = async(req: Request, res: Response) => {
             const accessSecret = await jose.importJWK(ACCESS_TOKEN_SECRET, 'EdDSA');
             const refreshSecret = await jose.importJWK(REFRESH_TOKEN_SECRET, 'EdDSA');
 
-            const payload = {
-                    sub: user._id,
-            }
-    
-            const accessToken = await new jose.SignJWT(payload)
-            .setProtectedHeader({alg: 'EdDSA'})
-            .setIssuedAt()
-            .setIssuer('https://auth.brewica.com')
-            .setAudience('https://www.brewica.com')
-            .setExpirationTime('10m')
-            .sign(accessSecret)
+            const accessToken = await createToken(emailAddress, user._id, '10m', accessSecret);
+            const refreshToken = await createToken(emailAddress, user._id, '60m', refreshSecret);
                 
-            res.cookie("__Secure-accessToken", accessToken, {httpOnly: true, secure: true, sameSite: "strict", maxAge: 600_000})
-            
-            const refreshToken = await new jose.SignJWT(payload)
-            .setProtectedHeader({alg: 'EdDSA'})
-            .setIssuedAt()
-            .setIssuer('https://auth.brewica.com')
-            .setAudience('https://www.brewica.com')
-            .setExpirationTime('60m')
-            .sign(refreshSecret)
+            res.cookie("__Secure-accessToken", accessToken, {httpOnly: true, secure: true, sameSite: "strict", maxAge: 600_000});
 
-            res.cookie("__Secure-refreshToken", refreshToken, {httpOnly: true, secure: true, sameSite: "strict", maxAge: 3_600_000})
+            res.cookie("__Secure-refreshToken", refreshToken, {httpOnly: true, secure: true, sameSite: "strict", maxAge: 3_600_000});
 
-            return res.status(200).send()
+            return res.status(200).send();
         }
     } catch(error) {
         console.log(error)
