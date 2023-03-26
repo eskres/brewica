@@ -381,8 +381,9 @@ describe('User POST /auth/signin', () => {
         
         // Assert
         expect(response.status).toEqual(200);
-        expect(cookie[0].name).toEqual('__Secure-accessToken')
-        expect(cookie[1].name).toEqual('__Secure-refreshToken')
+        expect(cookie[0].name).toEqual('__Secure-accessToken');
+        expect(cookie[1].name).toEqual('__Secure-refreshToken');
+        expect(cookie[0].value).not.toEqual(cookie[1].value);
         expect(accessToken.payload).toEqual(expect.objectContaining({sub: savedUser._id.toString()}));
         expect(refreshToken.payload).toEqual(expect.objectContaining({sub: savedUser._id.toString()}));
     });
