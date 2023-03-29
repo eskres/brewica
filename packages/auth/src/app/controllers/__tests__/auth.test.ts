@@ -387,3 +387,69 @@ describe('User POST /auth/signin', () => {
         expect(refreshToken.payload).toEqual(expect.objectContaining({sub: savedUser._id.toString()}));
     });
 });
+
+describe('User GET /auth/token', () => {
+    // Declare user variable
+    let savedUser: IUser;
+
+    // Generate a password
+    const password: string = faker.internet.password(15, false, /\w/, '_0');
+
+    // Claims for user sign up
+    const newUser: IUser = ({
+        username: faker.internet.userName(),
+        emailAddress: faker.internet.email(),
+        password: password,
+        passwordConf: password
+    });
+    
+    
+    beforeAll(async () => {
+        // Send request to sign up user
+        await supertest(app).post("/auth/signup").send(newUser);
+        // Get user we just created from DB
+        return savedUser = await User.findOne({emailAddress: newUser.emailAddress});
+    });
+    
+    test('successfully get new access and refresh tokens', async () => {
+        
+        // Arrange
+        // Credentials for sign in
+        const testUser: ISignIn = ({
+            emailAddress: savedUser.emailAddress,
+            password: password,
+        });
+
+        // Get public keys to verify JWTs
+        const accessSecret = await jose.importJWK(ACCESS_TOKEN_PUBLIC, 'EdDSA');
+        const refreshSecret = await jose.importJWK(REFRESH_TOKEN_PUBLIC, 'EdDSA');
+
+        // Act
+        // Sign user in
+        const signInResponse: supertest.Response = await supertest(app).post("/auth/signin").send(testUser);
+        // Request refresh token
+        const refreshResponse: supertest.Response = await supertest(app).post("/auth/refresh").send(signInResponse.body.accessToken);
+
+        // Parse cookies from responses
+        const signInCookie = setCookie.parse(signInResponse);
+        const refreshCookie = setCookie.parse(refreshResponse);
+
+        // Verify original JWTs
+        const accessToken = await jose.jwtVerify(signInResponse.body.accessToken, accessSecret);
+        const refreshToken = await jose.jwtVerify(signInCookie[0].value, refreshSecret);
+
+        // Verify new JWTs
+        const newAccessToken = await jose.jwtVerify(refreshResponse.body.accessToken, accessSecret);
+        const newRefreshToken = await jose.jwtVerify(refreshCookie[0].value, refreshSecret);
+
+        // Assert
+        expect(signInResponse.status).toEqual(200);
+        expect(refreshResponse.status).toEqual(200);
+        expect(newAccessToken).toBeDefined;
+        expect(newRefreshToken).toBeDefined;
+        expect(newAccessToken).not.toEqual(accessToken);
+        expect(newRefreshToken).not.toEqual(refreshToken);
+        expect(newAccessToken.payload).toEqual(expect.objectContaining({sub: savedUser._id.toString()}));
+        expect(newRefreshToken.payload).toEqual(expect.objectContaining({sub: savedUser._id.toString()}));
+    });
+});
