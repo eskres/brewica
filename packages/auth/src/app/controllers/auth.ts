@@ -4,7 +4,7 @@ import * as argon2 from "argon2";
 import * as dns from "dns";
 import  { transport } from '../../utils/nodemailerTransport';
 import type { SendMailOptions } from 'nodemailer';
-import { randomUUID } from 'crypto';
+import { randomUUID, createHash } from 'crypto';
 import * as jose from 'jose';
 import { ACCESS_TOKEN_SECRET, REFRESH_TOKEN_SECRET } from '../../../jwks';
 
@@ -33,10 +33,11 @@ export const signUpPost = async (req: Request, res: Response, next: NextFunction
         return res.status(400).json({message:'Passwords do not match'});
     }
     
-    // Hash password
+    // Hash password as per OWASP -> https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html
+    // TODO: *** ADD A PEPPER ***
     const hash = await argon2.hash(password, {
         type: argon2.argon2id,
-        memoryCost: 15_360, // in KiB. Minimum of 15 Mib required.
+        memoryCost: 19_456, // in KiB. Minimum of 19 Mib required.
         timeCost: 2, // Minimum time cost of 2 required
         parallelism: 1 // Minimum parallelism of 1 required
     });
@@ -97,20 +98,25 @@ export const signUpPost = async (req: Request, res: Response, next: NextFunction
 }
 
 export const signInPost = async(req: Request, res: Response) => {
+
+    const fingerprint: string = randomUUID();
+    const fingerprintHash: string = createHash('sha256').update(fingerprint).digest('hex');
+
     const {emailAddress, password} = req.body;
 
-    async function createToken(email: string, sub: string, exp: string, secret: jose.KeyLike | Uint8Array) {
-        return new jose.SignJWT({email: email})
+    async function createToken(fingerprint: string, sub: string, exp: string, secret: jose.KeyLike | Uint8Array) {
+        return new jose.SignJWT({fingerprint: fingerprint})
             .setSubject(sub)
             .setProtectedHeader({alg: 'EdDSA'})
             .setIssuedAt()
             .setIssuer('https://auth.brewica.com')
             .setAudience('https://www.brewica.com')
             .setExpirationTime(exp)
+            .setJti(randomUUID())
             .sign(secret);
     }
 
-    try{
+    try{       
         const user = await User.findOne({emailAddress})
         
         if(!user){ return res.status(400).json({message: "Account not found"}); }
@@ -129,14 +135,14 @@ export const signInPost = async(req: Request, res: Response) => {
             const accessSecret = await jose.importJWK(ACCESS_TOKEN_SECRET, 'EdDSA');
             const refreshSecret = await jose.importJWK(REFRESH_TOKEN_SECRET, 'EdDSA');
 
-            const accessToken = await createToken(emailAddress, user._id, '10m', accessSecret);
-            const refreshToken = await createToken(emailAddress, user._id, '60m', refreshSecret);
-                
-            res.cookie("__Secure-accessToken", accessToken, {httpOnly: true, secure: true, sameSite: "strict", maxAge: 600_000});
+            const accessToken = await createToken(fingerprintHash,  user._id, '10m', accessSecret);
+            const refreshToken = await createToken(fingerprintHash, user._id, '60m', refreshSecret);
 
             res.cookie("__Secure-refreshToken", refreshToken, {httpOnly: true, secure: true, sameSite: "strict", maxAge: 3_600_000});
 
-            return res.status(200).send();
+            res.cookie("__Secure-fingerprint", fingerprint, {httpOnly: true, secure: true, sameSite: "strict", maxAge: 600_000});
+
+            return res.status(200).json({accessToken: accessToken});
         }
     } catch(error) {
         console.log(error)

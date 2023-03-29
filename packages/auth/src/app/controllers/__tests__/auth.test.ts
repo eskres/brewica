@@ -8,7 +8,7 @@ import type { IUser, ISignIn } from '../../../../../types';
 import { transport } from '../../../utils/nodemailerTransport';
 import * as jose from 'jose';
 import * as setCookie from 'set-cookie-parser'
-import { ACCESS_TOKEN_SECRET, REFRESH_TOKEN_SECRET } from '../../../../jwks'
+import { ACCESS_TOKEN_PUBLIC, REFRESH_TOKEN_PUBLIC } from '../../../../jwks'
 
 
 beforeAll(async () => {
@@ -369,22 +369,21 @@ describe('User POST /auth/signin', () => {
             password: password,
         });
 
-        const accessSecret = await jose.importJWK(ACCESS_TOKEN_SECRET, 'EdDSA');
-        const refreshSecret = await jose.importJWK(REFRESH_TOKEN_SECRET, 'EdDSA');
+        const accessSecret = await jose.importJWK(ACCESS_TOKEN_PUBLIC, 'EdDSA');
+        const refreshSecret = await jose.importJWK(REFRESH_TOKEN_PUBLIC, 'EdDSA');
 
         // Act
         const response: supertest.Response = await supertest(app).post("/auth/signin").send(testUser);
         const cookie = setCookie.parse(response);
         
-        const accessToken = await jose.jwtVerify(cookie[0].value, accessSecret);
-        const refreshToken = await jose.jwtVerify(cookie[1].value, refreshSecret);
+        const accessToken = await jose.jwtVerify(response.body.accessToken, accessSecret);
+        const refreshToken = await jose.jwtVerify(cookie[0].value, refreshSecret);
         
         // Assert
         expect(response.status).toEqual(200);
-        expect(cookie[0].name).toEqual('__Secure-accessToken');
-        expect(cookie[1].name).toEqual('__Secure-refreshToken');
-        expect(cookie[0].value).not.toEqual(cookie[1].value);
-        expect(accessToken.payload).toEqual(expect.objectContaining({email: savedUser.emailAddress, sub: savedUser._id.toString()}));
-        expect(refreshToken.payload).toEqual(expect.objectContaining({email: savedUser.emailAddress, sub: savedUser._id.toString()}));
+        expect(cookie[0].name).toEqual('__Secure-refreshToken');
+        expect(cookie[1].name).toEqual('__Secure-fingerprint');
+        expect(accessToken.payload).toEqual(expect.objectContaining({sub: savedUser._id.toString()}));
+        expect(refreshToken.payload).toEqual(expect.objectContaining({sub: savedUser._id.toString()}));
     });
 });
