@@ -2,6 +2,7 @@ import express from 'express';
 import mongoose from 'mongoose';
 import path from 'path';
 import dotenv from 'dotenv';
+import cookieParser from 'cookie-parser'
 
 interface Error {
   statusCode?: number;
@@ -18,6 +19,7 @@ export const app: express.Application = express();
 
 app.use(express.json());
 app.use(express.urlencoded());
+app.use(cookieParser())
 
 app.use('/assets', express.static(path.join(__dirname, 'assets')));
 

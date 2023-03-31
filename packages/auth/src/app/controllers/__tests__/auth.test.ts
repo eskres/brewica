@@ -8,7 +8,7 @@ import type { IUser, ISignIn } from '../../../../../types';
 import { transport } from '../../../utils/nodemailerTransport';
 import * as jose from 'jose';
 import * as setCookie from 'set-cookie-parser'
-import { ACCESS_TOKEN_PUBLIC, REFRESH_TOKEN_PUBLIC } from '../../../../jwks'
+import * as jwks from '../../../../jwks'
 
 
 beforeAll(async () => {
@@ -369,8 +369,8 @@ describe('User POST /auth/signin', () => {
             password: password,
         });
 
-        const accessSecret = await jose.importJWK(ACCESS_TOKEN_PUBLIC, 'EdDSA');
-        const refreshSecret = await jose.importJWK(REFRESH_TOKEN_PUBLIC, 'EdDSA');
+        const accessSecret = await jose.importJWK(jwks.ACCESS_TOKEN_PUBLIC, 'EdDSA');
+        const refreshSecret = await jose.importJWK(jwks.REFRESH_TOKEN_PUBLIC, 'EdDSA');
 
         // Act
         const response: supertest.Response = await supertest(app).post("/auth/signin").send(testUser);
@@ -388,7 +388,7 @@ describe('User POST /auth/signin', () => {
     });
 });
 
-describe('User GET /auth/token', () => {
+describe.only('User GET /auth/token', () => {
     // Declare user variable
     let savedUser: IUser;
 
@@ -401,8 +401,7 @@ describe('User GET /auth/token', () => {
         emailAddress: faker.internet.email(),
         password: password,
         passwordConf: password
-    });
-    
+    }); 
     
     beforeAll(async () => {
         // Send request to sign up user
@@ -419,20 +418,25 @@ describe('User GET /auth/token', () => {
             emailAddress: savedUser.emailAddress,
             password: password,
         });
-
         // Get public keys to verify JWTs
-        const accessSecret = await jose.importJWK(ACCESS_TOKEN_PUBLIC, 'EdDSA');
-        const refreshSecret = await jose.importJWK(REFRESH_TOKEN_PUBLIC, 'EdDSA');
+        const accessSecret = await jose.importJWK(jwks.ACCESS_TOKEN_PUBLIC, 'EdDSA');
+        const refreshSecret = await jose.importJWK(jwks.REFRESH_TOKEN_PUBLIC, 'EdDSA');
 
         // Act
         // Sign user in
-        const signInResponse: supertest.Response = await supertest(app).post("/auth/signin").send(testUser);
-        // Request refresh token
-        const refreshResponse: supertest.Response = await supertest(app).post("/auth/refresh").send(signInResponse.body.accessToken);
-
-        // Parse cookies from responses
+        const signInResponse: supertest.Response = await supertest(app)
+        .post("/auth/signin")
+        .send(testUser);
+        // Parse cookies from sign in response
         const signInCookie = setCookie.parse(signInResponse);
-        const refreshCookie = setCookie.parse(refreshResponse);
+        
+        // Request refresh token
+        const refreshResponse: supertest.Response = await supertest(app)
+        .get("/auth/token")
+        .set('Cookie', signInResponse.headers['set-cookie'])
+        .send();       
+        // Parse cookie from refresh response
+        const refreshCookie = setCookie.parse(refreshResponse);        
 
         // Verify original JWTs
         const accessToken = await jose.jwtVerify(signInResponse.body.accessToken, accessSecret);
@@ -447,8 +451,10 @@ describe('User GET /auth/token', () => {
         expect(refreshResponse.status).toEqual(200);
         expect(newAccessToken).toBeDefined;
         expect(newRefreshToken).toBeDefined;
-        expect(newAccessToken).not.toEqual(accessToken);
-        expect(newRefreshToken).not.toEqual(refreshToken);
+        expect(newAccessToken.payload.jti).not.toEqual(accessToken.payload.jti);
+        expect(newAccessToken.payload.fingerprint).not.toEqual(accessToken.payload.fingerprint);
+        expect(newRefreshToken.payload.jti).not.toEqual(refreshToken.payload.jti);
+        expect(newRefreshToken.payload.fingerprint).not.toEqual(refreshToken.payload.fingerprint);
         expect(newAccessToken.payload).toEqual(expect.objectContaining({sub: savedUser._id.toString()}));
         expect(newRefreshToken.payload).toEqual(expect.objectContaining({sub: savedUser._id.toString()}));
     });

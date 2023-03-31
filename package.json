@@ -60,6 +60,7 @@
   },
   "dependencies": {
     "@types/bootstrap": "^5.2.6",
+    "@types/cookie-parser": "^1.4.3",
     "@types/jsonwebtoken": "^9.0.1",
     "@types/nodemailer": "^6.4.7",
     "@types/oidc-provider": "^8.1.1",
@@ -67,6 +68,7 @@
     "argon2": "^0.30.3",
     "axios": "^1.0.0",
     "bootstrap": "^5.2.3",
+    "cookie-parser": "^1.4.6",
     "dotenv": "^16.0.3",
     "ejs": "^3.1.8",
     "express-openid-connect": "^2.12.0",

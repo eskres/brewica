@@ -6,7 +6,8 @@ import  { transport } from '../../utils/nodemailerTransport';
 import type { SendMailOptions } from 'nodemailer';
 import { randomUUID, createHash } from 'crypto';
 import * as jose from 'jose';
-import { ACCESS_TOKEN_SECRET, REFRESH_TOKEN_SECRET } from '../../../jwks';
+import * as jwks from '../../../jwks';
+import { createToken } from '../../utils/createToken'
 
 export const signUpPost = async (req: Request, res: Response, next: NextFunction) => {
     const username: string = req.body.username.toString().toLowerCase();
@@ -104,18 +105,6 @@ export const signInPost = async(req: Request, res: Response) => {
 
     const {emailAddress, password} = req.body;
 
-    async function createToken(fingerprint: string, sub: string, exp: string, secret: jose.KeyLike | Uint8Array) {
-        return new jose.SignJWT({fingerprint: fingerprint})
-            .setSubject(sub)
-            .setProtectedHeader({alg: 'EdDSA'})
-            .setIssuedAt()
-            .setIssuer('https://auth.brewica.com')
-            .setAudience('https://www.brewica.com')
-            .setExpirationTime(exp)
-            .setJti(randomUUID())
-            .sign(secret);
-    }
-
     try{       
         const user = await User.findOne({emailAddress})
         
@@ -132,8 +121,8 @@ export const signInPost = async(req: Request, res: Response) => {
             // console.log(publicKey.export({format: 'jwk'}))
             // console.log(privateKey.export({format: 'jwk'}))
 
-            const accessSecret = await jose.importJWK(ACCESS_TOKEN_SECRET, 'EdDSA');
-            const refreshSecret = await jose.importJWK(REFRESH_TOKEN_SECRET, 'EdDSA');
+            const accessSecret = await jose.importJWK(jwks.ACCESS_TOKEN_SECRET, 'EdDSA');
+            const refreshSecret = await jose.importJWK(jwks.REFRESH_TOKEN_SECRET, 'EdDSA');
 
             const accessToken = await createToken(fingerprintHash,  user._id, '10m', accessSecret);
             const refreshToken = await createToken(fingerprintHash, user._id, '60m', refreshSecret);
@@ -148,4 +137,55 @@ export const signInPost = async(req: Request, res: Response) => {
         console.log(error)
         res.status(500).json({"message": "Sign in failed"});
     }
+}
+export const tokenRefresh = async(req: Request, res: Response) => {
+    // Check refresh token actually exists
+    if(!req.cookies['__Secure-refreshToken']) return res.sendStatus(401);
+    // Check that user context / fingerprint exitsts
+    if(!req.cookies['__Secure-fingerprint']) return res.sendStatus(401);
+
+    // Import JWKS
+    const accessPrivateKey = await jose.importJWK(jwks.ACCESS_TOKEN_SECRET, 'EdDSA')
+    const refreshPublicKey = await jose.importJWK(jwks.REFRESH_TOKEN_PUBLIC, 'EdDSA')
+    const refreshPrivateKey = await jose.importJWK(jwks.REFRESH_TOKEN_SECRET, 'EdDSA')
+    // Get refresh token
+    const refreshToken = req.cookies['__Secure-refreshToken'];
+    // Get unhashed fingerprint
+    const fingerprint = req.cookies['__Secure-fingerprint'];
+
+        // Verify JWT
+    await jose.jwtVerify(refreshToken, refreshPublicKey, {
+        algorithms: ['EdDSA'],
+        issuer: 'https://auth.brewica.com',
+        audience: 'https://www.brewica.com'
+    })
+    .then(async (jwt) => {
+        // Check hashed fingerprint exists in JWT
+        if(!jwt.payload['fingerprint']) return res.sendStatus(401);
+        if(!jwt.payload['sub']) return res.sendStatus(401);
+
+        // Hash fingerprint
+        const fingerprintHash: string = createHash('sha256').update(fingerprint).digest('hex');
+
+        // Compare fingerprint hashes
+        if(jwt.payload['fingerprint'] as string !== fingerprintHash) return res.sendStatus(401);
+        
+        // Generate new fingerprint and hash it
+        const newFingerprint: string = randomUUID();
+        const newFingerprintHash: string = createHash('sha256').update(newFingerprint).digest('hex');
+
+        // Generate new access token and refresh token
+        const accessToken = await createToken(newFingerprintHash, jwt.payload['sub'] as string, '10m', accessPrivateKey);
+        const newRefreshToken = await createToken(newFingerprintHash, jwt.payload['sub'] as string, jwt.payload.exp as number, refreshPrivateKey);
+
+        // Set cookies
+        res.cookie("__Secure-refreshToken", newRefreshToken, {httpOnly: true, secure: true, sameSite: "strict", expires: new Date(jwt.payload.exp as number)});
+        res.cookie("__Secure-fingerprint", newFingerprint, {httpOnly: true, secure: true, sameSite: "strict", expires: new Date(jwt.payload.exp as number)});
+        
+        return res.status(200).json({accessToken: accessToken});
+        })
+    .catch((err) => {
+        console.log(err);
+        return res.sendStatus(401);
+    })
 }
