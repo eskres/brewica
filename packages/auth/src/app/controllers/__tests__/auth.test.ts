@@ -46,12 +46,14 @@ describe('User POST /auth/signup', () => {
         
         // Act
         existingUser.save();
-        const response: supertest.Response = await supertest(app).post("/auth/signup").send(testUser);
+        const response: supertest.Response = await supertest(app)
+        .post("/auth/signup")
+        .send(testUser)
+        .expect(409);
         const savedUser: IUser = await User.findOne({emailAddress: testUser.emailAddress});
         
         // Assert
         expect(savedUser).not.toBeDefined;
-        expect(response.status).toEqual(409);
         expect(response.body.message).toContain('Username');
         expect(response.body.message).toContain('is already registered');
     });
@@ -79,14 +81,16 @@ describe('User POST /auth/signup', () => {
         
         // Act
         existingUser.save();
-        const response: supertest.Response = await supertest(app).post("/auth/signup").send(testUser);
+        const response: supertest.Response = await supertest(app)
+        .post("/auth/signup")
+        .send(testUser)
+        .expect(409);
         const savedUser: IUser = await User.findOne({emailAddress: testUser.emailAddress});
         
         // Assert
         expect(savedUser).not.toBeDefined;
         expect(response.body.message).toContain('Email address');
         expect(response.body.message).toContain('is already registered');
-        expect(response.status).toEqual(409);
     });
     
 
@@ -103,13 +107,15 @@ describe('User POST /auth/signup', () => {
         });
         
         // Act        
-        const response: supertest.Response = await supertest(app).post("/auth/signup").send(testUser);
+        const response: supertest.Response = await supertest(app)
+        .post("/auth/signup")
+        .send(testUser)
+        .expect(400);
         const savedUser: IUser = await User.findOne({emailAddress: testUser.emailAddress});
         
         // Assert
         expect(savedUser).not.toBeDefined;
         expect(response.body.message).toContain('Usernames must be no longer than 28 characters');
-        expect(response.status).toEqual(400);
     });
 
     
@@ -125,14 +131,16 @@ describe('User POST /auth/signup', () => {
         });
         
         // Act
-        const response: supertest.Response = await supertest(app).post("/auth/signup").send(testUser)
+        const response: supertest.Response = await supertest(app)
+        .post("/auth/signup")
+        .send(testUser)
+        .expect(400);
         const savedUser: IUser = await User.findOne({emailAddress: testUser.emailAddress});
         
         // Assert
         expect(savedUser).not.toBeDefined;
         expect(response.body.message).toContain('Only letters, numbers, dashes and underscores are permitted');
         expect(response.body.message).toContain('are not case sensitive');
-        expect(response.status).toEqual(400);
     });
     
     
@@ -148,14 +156,15 @@ describe('User POST /auth/signup', () => {
         });
         
         // Act
-        const response: supertest.Response = await supertest(app).post("/auth/signup")
+        const response: supertest.Response = await supertest(app)
+        .post("/auth/signup")
         .send(testUser)
+        .expect(400);
         const savedUser: IUser = await User.findOne({emailAddress: testUser.emailAddress});
 
         // Assert
         expect(savedUser).not.toBeDefined;
         expect(response.body.message).toContain("Email address invalid, provider");
-        expect(response.status).toEqual(400);
     })
     
     test('send verification email once and receive no errors', async () => {
@@ -171,14 +180,15 @@ describe('User POST /auth/signup', () => {
         
         // Act
         const sendMail: jest.SpyInstance = jest.spyOn(await transport, 'sendMail');
-        const response: supertest.Response = await supertest(app).post("/auth/signup")
-        .send(testUser);        
+        const response: supertest.Response = await supertest(app)
+        .post("/auth/signup")
+        .send(testUser)
+        .expect(200);        
 
         // Assert
         expect(sendMail).toBeCalledTimes(1);
         expect(sendMail.mock.calls[0][0].to).toEqual(testUser.emailAddress);
         expect(response.body.message).toEqual("Account created successfully");
-        expect(response.status).toEqual(200);
     });
 
     test('catch non matching passwords, do not save, send error message to user', async () => {
@@ -193,11 +203,13 @@ describe('User POST /auth/signup', () => {
         });
         
         // Act
-        const response: supertest.Response = await supertest(app).post("/auth/signup").send(testUser);
+        const response: supertest.Response = await supertest(app)
+        .post("/auth/signup")
+        .send(testUser)
+        .expect(400);
         
         // Assert
         expect(response.body.message).toContain("Passwords do not match");
-        expect(response.status).toEqual(400);
     });
 
     test('catch an invalid password (regex length), do not save, send error message to user', async () => {
@@ -210,11 +222,13 @@ describe('User POST /auth/signup', () => {
         });
         
         // Act
-        const response: supertest.Response = await supertest(app).post("/auth/signup").send(testUser);
+        const response: supertest.Response = await supertest(app)
+        .post("/auth/signup")
+        .send(testUser)
+        .expect(400);
         
         // Assert
         expect(response.body.message).toContain("Password requires 8 or more characters");
-        expect(response.status).toEqual(400);
     });
 
     test('catch an invalid password (regex characters), do not save, send error message to user', async () => {
@@ -227,11 +241,13 @@ describe('User POST /auth/signup', () => {
         });
         
         // Act
-        const response: supertest.Response = await supertest(app).post("/auth/signup").send(testUser);
+        const response: supertest.Response = await supertest(app)
+        .post("/auth/signup")
+        .send(testUser)
+        .expect(400);
         
         // Assert
         expect(response.body.message).toContain("Password requires 8 or more characters");
-        expect(response.status).toEqual(400);
     });
 
 
@@ -246,15 +262,16 @@ describe('User POST /auth/signup', () => {
             passwordConf: password
         });
         // Act
-        const response: supertest.Response = await supertest(app).post("/auth/signup")
-        .send(testUser);
+        await supertest(app)
+        .post("/auth/signup")
+        .send(testUser)
+        .expect(200);
         
         // Get stored password from the db
         const savedUser: IUser = await User.findOne({emailAddress: testUser.emailAddress});
         
         // Assert
         // // Check password stored in db does not match password variable
-        expect(response.status).toEqual(200);
         expect(savedUser.emailAddress).toEqual(testUser.emailAddress.toLowerCase())
         expect(savedUser.password).not.toEqual(testUser.password)
         expect(savedUser.password).toContain('argon2id')
@@ -272,8 +289,10 @@ describe('User POST /auth/signup', () => {
         });
         
         // Act
-        const response: supertest.Response = await supertest(app).post("/auth/signup")
+        const response: supertest.Response = await supertest(app)
+        .post("/auth/signup")
         .send(testUser)
+        .expect(200);
         const savedUser: IUser = await User.findOne({emailAddress: testUser.emailAddress});        
 
         // Assert
@@ -282,7 +301,6 @@ describe('User POST /auth/signup', () => {
         expect(savedUser.expiresAt.getTime() - new Date().getTime()).toBeGreaterThan(23.99 * 60 * 60 * 1000);
         expect(savedUser.expiresAt.getTime() - new Date().getTime()).toBeLessThan(24 * 60 * 60 * 1000);
         expect(response.body.message).toEqual("Account created successfully");
-        expect(response.status).toEqual(200);
     });
 
     test('saves the user to MongoDB and sends a success message to user', async () => {
@@ -297,15 +315,17 @@ describe('User POST /auth/signup', () => {
         });
         
         // Act
-        const response: supertest.Response = await supertest(app).post("/auth/signup")
+        const response: supertest.Response = await supertest(app)
+        .post("/auth/signup")
         .send(testUser)
+        .expect(200);
+
         const savedUser: IUser = await User.findOne({emailAddress: testUser.emailAddress});        
         
         // Assert
         expect(savedUser).toBeDefined;
         expect(savedUser.emailAddress).toEqual(testUser.emailAddress.toLocaleLowerCase());
         expect(response.body.message).toEqual("Account created successfully");
-        expect(response.status).toEqual(200);
     });
 
 });
@@ -323,7 +343,10 @@ describe('User POST /auth/signin', () => {
     });
 
     beforeAll(async () => {
-        await supertest(app).post("/auth/signup").send(newUser);
+        await supertest(app)
+        .post("/auth/signup")
+        .send(newUser)
+        .expect(200);;
         return savedUser = await User.findOne({emailAddress: newUser.emailAddress});
     });
 
@@ -336,11 +359,12 @@ describe('User POST /auth/signin', () => {
         });
 
         // Act
-        const response = await supertest(app).post("/auth/signin")
+        const response = await supertest(app)
+        .post("/auth/signin")
         .send(testUser)
+        .expect(400);
 
         // Assert
-        expect(response.status).toEqual(400);
         expect(response.body.message).toEqual("Password incorrect");
 
     });
@@ -353,13 +377,13 @@ describe('User POST /auth/signin', () => {
         });
 
         // Act
-        const response = await supertest(app).post("/auth/signin")
+        const response = await supertest(app)
+        .post("/auth/signin")
         .send(testUser)
+        .expect(400);
 
         // Assert
-        expect(response.status).toEqual(400);
         expect(response.body.message).toEqual("Account not found");
-
     });
 
     test('a successful sign in should respond with JWT access token and refresh token', async () => {
@@ -373,14 +397,16 @@ describe('User POST /auth/signin', () => {
         const refreshSecret = await jose.importJWK(jwks.REFRESH_TOKEN_PUBLIC, 'EdDSA');
 
         // Act
-        const response: supertest.Response = await supertest(app).post("/auth/signin").send(testUser);
+        const response: supertest.Response = await supertest(app)
+        .post("/auth/signin")
+        .send(testUser)
+        .expect(200);
         const cookie = setCookie.parse(response);
         
         const accessToken = await jose.jwtVerify(response.body.accessToken, accessSecret);
         const refreshToken = await jose.jwtVerify(cookie[0].value, refreshSecret);
         
         // Assert
-        expect(response.status).toEqual(200);
         expect(cookie[0].name).toEqual('__Secure-refreshToken');
         expect(cookie[1].name).toEqual('__Secure-fingerprint');
         expect(accessToken.payload).toEqual(expect.objectContaining({sub: savedUser._id.toString()}));
@@ -388,7 +414,7 @@ describe('User POST /auth/signin', () => {
     });
 });
 
-describe.only('User GET /auth/token', () => {
+describe('User GET /auth/token', () => {
     // Declare user variable
     let savedUser: IUser;
 
@@ -405,7 +431,10 @@ describe.only('User GET /auth/token', () => {
     
     beforeAll(async () => {
         // Send request to sign up user
-        await supertest(app).post("/auth/signup").send(newUser);
+        await supertest(app)
+        .post("/auth/signup")
+        .send(newUser)
+        .expect(200);
         // Get user we just created from DB
         return savedUser = await User.findOne({emailAddress: newUser.emailAddress});
     });
@@ -426,7 +455,8 @@ describe.only('User GET /auth/token', () => {
         // Sign user in
         const signInResponse: supertest.Response = await supertest(app)
         .post("/auth/signin")
-        .send(testUser);
+        .send(testUser)
+        .expect(200);
         
         // Parse cookies from sign in response
         const signInCookie = setCookie.parse(signInResponse);
@@ -435,7 +465,8 @@ describe.only('User GET /auth/token', () => {
         const refreshResponse: supertest.Response = await supertest(app)
         .get("/auth/token")
         .set('Cookie', signInResponse.headers['set-cookie'])
-        .send();
+        .send()
+        .expect(200);
 
         // Parse cookie from refresh response
         const refreshCookie = setCookie.parse(refreshResponse);        
@@ -446,11 +477,9 @@ describe.only('User GET /auth/token', () => {
 
         // Verify new JWTs
         const newAccessToken = await jose.jwtVerify(refreshResponse.body.accessToken, accessSecret);
-        const newRefreshToken = await jose.jwtVerify(refreshCookie[0].value, refreshSecret);       
+        const newRefreshToken = await jose.jwtVerify(refreshCookie[0].value, refreshSecret); 
 
         // Assert
-        expect(signInResponse.status).toEqual(200);
-        expect(refreshResponse.status).toEqual(200);
         expect(newAccessToken).toBeDefined;
         expect(newRefreshToken).toBeDefined;
         expect(newAccessToken.payload.jti).not.toEqual(accessToken.payload.jti);
