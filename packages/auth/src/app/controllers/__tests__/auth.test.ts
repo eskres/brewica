@@ -427,6 +427,7 @@ describe.only('User GET /auth/token', () => {
         const signInResponse: supertest.Response = await supertest(app)
         .post("/auth/signin")
         .send(testUser);
+        
         // Parse cookies from sign in response
         const signInCookie = setCookie.parse(signInResponse);
         
@@ -434,7 +435,8 @@ describe.only('User GET /auth/token', () => {
         const refreshResponse: supertest.Response = await supertest(app)
         .get("/auth/token")
         .set('Cookie', signInResponse.headers['set-cookie'])
-        .send();       
+        .send();
+
         // Parse cookie from refresh response
         const refreshCookie = setCookie.parse(refreshResponse);        
 
@@ -444,7 +446,7 @@ describe.only('User GET /auth/token', () => {
 
         // Verify new JWTs
         const newAccessToken = await jose.jwtVerify(refreshResponse.body.accessToken, accessSecret);
-        const newRefreshToken = await jose.jwtVerify(refreshCookie[0].value, refreshSecret);
+        const newRefreshToken = await jose.jwtVerify(refreshCookie[0].value, refreshSecret);       
 
         // Assert
         expect(signInResponse.status).toEqual(200);
@@ -457,5 +459,7 @@ describe.only('User GET /auth/token', () => {
         expect(newRefreshToken.payload.fingerprint).not.toEqual(refreshToken.payload.fingerprint);
         expect(newAccessToken.payload).toEqual(expect.objectContaining({sub: savedUser._id.toString()}));
         expect(newRefreshToken.payload).toEqual(expect.objectContaining({sub: savedUser._id.toString()}));
+        expect(newRefreshToken.payload.exp).toEqual(refreshToken.payload.exp);
+        expect(refreshCookie[0].expires).toEqual(new Date(refreshToken.payload.exp * 1000));
     });
 });
