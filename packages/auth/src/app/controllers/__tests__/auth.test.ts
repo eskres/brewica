@@ -366,7 +366,6 @@ describe('User POST /auth/signin', () => {
 
         // Assert
         expect(response.body.message).toEqual("Password incorrect");
-
     });
 
     test('catch a non existant account and send error message to user', async () => {
@@ -414,7 +413,7 @@ describe('User POST /auth/signin', () => {
     });
 });
 
-describe('User GET /auth/token', () => {
+describe.only('User GET /auth/token', () => {
     // Declare user variable
     let savedUser: IUser;
 
@@ -477,7 +476,7 @@ describe('User GET /auth/token', () => {
 
         // Verify new JWTs
         const newAccessToken = await jose.jwtVerify(refreshResponse.body.accessToken, accessSecret);
-        const newRefreshToken = await jose.jwtVerify(refreshCookie[0].value, refreshSecret); 
+        const newRefreshToken = await jose.jwtVerify(refreshCookie[0].value, refreshSecret);
 
         // Assert
         expect(newAccessToken).toBeDefined;
@@ -490,5 +489,83 @@ describe('User GET /auth/token', () => {
         expect(newRefreshToken.payload).toEqual(expect.objectContaining({sub: savedUser._id.toString()}));
         expect(newRefreshToken.payload.exp).toEqual(refreshToken.payload.exp);
         expect(refreshCookie[0].expires).toEqual(new Date(refreshToken.payload.exp * 1000));
+    });
+    test('request should fail due to invalid token', async () => {
+        // Arrange
+        // Credentials for sign in
+        const testUser: ISignIn = ({
+            emailAddress: savedUser.emailAddress,
+            password: password,
+        });
+
+        // Act
+        // Sign user in
+        const signInResponse: supertest.Response = await supertest(app)
+        .post("/auth/signin")
+        .send(testUser)
+        .expect(200);
+        
+        // Request refresh token
+        const refreshResponse: supertest.Response = await supertest(app)
+        .get("/auth/token")
+        .set('Cookie', [`__Secure-refreshToken=${signInResponse.body.accessToken}`, signInResponse.header['set-cookie'][1]])
+        .send()
+        .expect(401);
+        
+        // Assert
+        expect(refreshResponse.header['set-cookie']).not.toBeDefined;
+        expect(refreshResponse.body.accessToken).not.toBeDefined;
+    });
+    test('request should fail due to missing fingerprint', async () => {
+        // Arrange
+        // Credentials for sign in
+        const testUser: ISignIn = ({
+            emailAddress: savedUser.emailAddress,
+            password: password,
+        });
+
+        // Act
+        // Sign user in
+        const signInResponse: supertest.Response = await supertest(app)
+        .post("/auth/signin")
+        .send(testUser)
+        .expect(200);
+        
+        // Request refresh token
+        const refreshResponse: supertest.Response = await supertest(app)
+        .get("/auth/token")
+        .set('Cookie', `__Secure-refreshToken=${signInResponse.header['set-cookie'][0]}`)
+        .send()
+        .expect(401);
+
+        // Assert
+        expect(refreshResponse.header['set-cookie']).not.toBeDefined;
+        expect(refreshResponse.body.accessToken).not.toBeDefined;        
+    });
+    test('request should fail due to missing token', async () => {
+        // Arrange
+        // Credentials for sign in
+        const testUser: ISignIn = ({
+            emailAddress: savedUser.emailAddress,
+            password: password,
+        });
+
+        // Act
+        // Sign user in
+        const signInResponse: supertest.Response = await supertest(app)
+        .post("/auth/signin")
+        .send(testUser)
+        .expect(200);
+
+        // Request refresh token
+        const refreshResponse: supertest.Response = await supertest(app)
+        .get("/auth/token")
+        .set('Cookie', signInResponse.header['set-cookie'][1])
+        .send()
+        .expect(401);
+
+        // Assert
+        expect(refreshResponse.header['set-cookie']).not.toBeDefined;
+        expect(refreshResponse.body.accessToken).not.toBeDefined;
     });
 });
