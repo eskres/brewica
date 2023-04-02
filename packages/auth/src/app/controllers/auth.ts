@@ -176,11 +176,11 @@ export const tokenRefresh = async(req: Request, res: Response) => {
 
         // Generate new access token and refresh token
         const accessToken = await createToken(newFingerprintHash, jwt.payload['sub'] as string, '10m', accessPrivateKey);
-        const newRefreshToken = await createToken(newFingerprintHash, jwt.payload['sub'] as string, jwt.payload.exp as number, refreshPrivateKey);
-
+        const newRefreshToken = await createToken(newFingerprintHash, jwt.payload['sub'] as string, jwt.payload.exp as number, refreshPrivateKey);       
+        
         // Set cookies
-        res.cookie("__Secure-refreshToken", newRefreshToken, {httpOnly: true, secure: true, sameSite: "strict", expires: new Date(jwt.payload.exp as number)});
-        res.cookie("__Secure-fingerprint", newFingerprint, {httpOnly: true, secure: true, sameSite: "strict", expires: new Date(jwt.payload.exp as number)});
+        res.cookie("__Secure-refreshToken", newRefreshToken, {httpOnly: true, secure: true, sameSite: "strict", expires: new Date(jwt.payload.exp as number * 1000)});
+        res.cookie("__Secure-fingerprint", newFingerprint, {httpOnly: true, secure: true, sameSite: "strict", expires: new Date(jwt.payload.exp as number * 1000)});
         
         return res.status(200).json({accessToken: accessToken});
         })
