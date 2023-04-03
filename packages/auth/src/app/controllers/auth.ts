@@ -139,10 +139,8 @@ export const signInPost = async(req: Request, res: Response) => {
     }
 }
 export const tokenRefresh = async(req: Request, res: Response) => {
-    // Check refresh token actually exists
-    if(!req.cookies['__Secure-refreshToken']) return res.sendStatus(401);
-    // Check that user context / fingerprint exitsts
-    if(!req.cookies['__Secure-fingerprint']) return res.sendStatus(401);
+    // Check refresh token and user context / fingerprint actually exist in cookies
+    if(!req.cookies['__Secure-refreshToken'] || !req.cookies['__Secure-fingerprint']) return res.sendStatus(401);
 
     // Import JWKS
     const accessPrivateKey = await jose.importJWK(jwks.ACCESS_TOKEN_SECRET, 'EdDSA')
@@ -153,16 +151,15 @@ export const tokenRefresh = async(req: Request, res: Response) => {
     // Get unhashed fingerprint
     const fingerprint = req.cookies['__Secure-fingerprint'];
 
-        // Verify JWT
+    // Verify JWT
     await jose.jwtVerify(refreshToken, refreshPublicKey, {
         algorithms: ['EdDSA'],
         issuer: 'https://auth.brewica.com',
         audience: 'https://www.brewica.com'
     })
     .then(async (jwt) => {
-        // Check hashed fingerprint exists in JWT
-        if(!jwt.payload['fingerprint']) return res.sendStatus(401);
-        if(!jwt.payload['sub']) return res.sendStatus(401);
+        // Check hashed fingerprint and user id exist in JWT
+        if(!jwt.payload['fingerprint'] || !jwt.payload['sub']) return res.sendStatus(401);
 
         // Hash fingerprint
         const fingerprintHash: string = createHash('sha256').update(fingerprint).digest('hex');
