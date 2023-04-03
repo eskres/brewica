@@ -8,6 +8,7 @@ import { randomUUID, createHash } from 'crypto';
 import * as jose from 'jose';
 import * as jwks from '../../../jwks';
 import { createToken } from '../../utils/createToken'
+import { redisClient } from '../../utils/redis';
 
 export const signUpPost = async (req: Request, res: Response, next: NextFunction) => {
     const username: string = req.body.username.toString().toLowerCase();
@@ -139,6 +140,13 @@ export const signInPost = async(req: Request, res: Response) => {
     }
 }
 export const tokenRefresh = async(req: Request, res: Response) => {
+
+    if (!redisClient.isOpen) {        
+        await redisClient.connect().then(() => {
+            console.log(redisClient.isReady);
+        })
+    }
+
     // Check refresh token and user context / fingerprint actually exist in cookies
     if(!req.cookies['__Secure-refreshToken'] || !req.cookies['__Secure-fingerprint']) return res.sendStatus(401);
 
@@ -178,6 +186,8 @@ export const tokenRefresh = async(req: Request, res: Response) => {
         // Set cookies
         res.cookie("__Secure-refreshToken", newRefreshToken, {httpOnly: true, secure: true, sameSite: "strict", expires: new Date(jwt.payload.exp as number * 1000)});
         res.cookie("__Secure-fingerprint", newFingerprint, {httpOnly: true, secure: true, sameSite: "strict", expires: new Date(jwt.payload.exp as number * 1000)});
+
+        redisClient.quit();
         
         return res.status(200).json({accessToken: accessToken});
         })
