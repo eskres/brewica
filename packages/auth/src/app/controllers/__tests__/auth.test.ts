@@ -440,8 +440,8 @@ describe.only('User GET /auth/token', () => {
     });
     
     test('successfully get new access and refresh tokens', async () => {
-        
         // Arrange
+
         // Credentials for sign in
         const testUser: ISignIn = ({
             emailAddress: savedUser.emailAddress,
@@ -478,7 +478,9 @@ describe.only('User GET /auth/token', () => {
         // Verify new JWTs
         const newAccessToken = await jose.jwtVerify(refreshResponse.body.accessToken, accessSecret);
         const newRefreshToken = await jose.jwtVerify(refreshCookie[0].value, refreshSecret);
-        const invalidatedToken = await redisClient.sIsMember(savedUser._id.toString(), signInCookie[0].value)
+        if (!redisClient.isOpen) {
+            await redisClient.connect();
+        };
 
         // Assert
         expect(newAccessToken).toBeDefined;
@@ -491,7 +493,8 @@ describe.only('User GET /auth/token', () => {
         expect(newRefreshToken.payload).toEqual(expect.objectContaining({sub: savedUser._id.toString()}));
         expect(newRefreshToken.payload.exp).toEqual(refreshToken.payload.exp);
         expect(refreshCookie[0].expires).toEqual(new Date(refreshToken.payload.exp * 1000));
-        expect(invalidatedToken).toEqual(1);
+        expect(await redisClient.get(signInCookie[0].value)).toEqual(savedUser._id.toString());
+        expect(await redisClient.ttl(signInCookie[0].value)).toBeLessThanOrEqual(3600)
     });
     test('request should fail due to invalid token', async () => {
         // Arrange
