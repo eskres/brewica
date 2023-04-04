@@ -139,16 +139,7 @@ export const signInPost = async(req: Request, res: Response) => {
         res.status(500).json({"message": "Sign in failed"});
     }
 }
-export const tokenRefresh = async(req: Request, res: Response) => {
-
-    // Check redis client isn't already open before connecting
-    if (!redisClient.isOpen) {
-        await redisClient.connect().catch((err) => {
-            console.log(err);
-            return res.sendStatus(500);
-        });
-    }
-
+export const tokenRefresh = async(req: Request, res: Response) => {    
     // Check refresh token and user context / fingerprint actually exist in cookies
     if(!req.cookies['__Secure-refreshToken'] || !req.cookies['__Secure-fingerprint']) return res.sendStatus(401);
 
@@ -161,7 +152,7 @@ export const tokenRefresh = async(req: Request, res: Response) => {
     
     // Get unhashed fingerprint
     const fingerprint = req.cookies['__Secure-fingerprint'];
-
+    
     // Verify JWT
     await jose.jwtVerify(refreshToken, refreshPublicKey, {
         algorithms: ['EdDSA'],
@@ -169,8 +160,20 @@ export const tokenRefresh = async(req: Request, res: Response) => {
         audience: 'https://www.brewica.com'
     })
     .then(async (jwt) => {
+        // Check redis client isn't already open before connecting
+        if (!redisClient.isOpen) {
+            await redisClient.connect()
+            .catch((err) => {
+                console.log(err);
+                redisClient.quit();
+                return res.sendStatus(500);
+            });
+        }
         // Check refresh token isn't blacklisted
-        if (await redisClient.exists(refreshToken) !== 0) return res.sendStatus(401);
+        if (await redisClient.exists(refreshToken) !== 0) {
+            redisClient.quit();
+            return res.sendStatus(401);
+        }
 
         // Check hashed fingerprint and user id exist in JWT
         if(!jwt.payload['fingerprint'] || !jwt.payload['sub']) return res.sendStatus(401);
