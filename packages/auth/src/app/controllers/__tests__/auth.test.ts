@@ -9,6 +9,7 @@ import { transport } from '../../../utils/nodemailerTransport';
 import * as jose from 'jose';
 import * as setCookie from 'set-cookie-parser'
 import * as jwks from '../../../../jwks'
+import { redisClient } from '../../../utils/redis';
 
 
 beforeAll(async () => {
@@ -477,6 +478,7 @@ describe.only('User GET /auth/token', () => {
         // Verify new JWTs
         const newAccessToken = await jose.jwtVerify(refreshResponse.body.accessToken, accessSecret);
         const newRefreshToken = await jose.jwtVerify(refreshCookie[0].value, refreshSecret);
+        const invalidatedToken = await redisClient.sIsMember(savedUser._id.toString(), signInCookie[0].value)
 
         // Assert
         expect(newAccessToken).toBeDefined;
@@ -489,6 +491,7 @@ describe.only('User GET /auth/token', () => {
         expect(newRefreshToken.payload).toEqual(expect.objectContaining({sub: savedUser._id.toString()}));
         expect(newRefreshToken.payload.exp).toEqual(refreshToken.payload.exp);
         expect(refreshCookie[0].expires).toEqual(new Date(refreshToken.payload.exp * 1000));
+        expect(invalidatedToken).toEqual(1);
     });
     test('request should fail due to invalid token', async () => {
         // Arrange
