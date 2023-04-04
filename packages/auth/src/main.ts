@@ -24,9 +24,11 @@ app.use(cookieParser())
 app.use('/assets', express.static(path.join(__dirname, 'assets')));
 
 // SERVER CONNECTION
-app.listen(port, host, () => {
-  console.log(`[ ready ] http://${host}:${port}`);
-});
+if (process.env['NODE_ENV'] !== 'test') {
+  app.listen(port, host, () => {
+    console.log(`[ ready ] http://${host}:${port}`);
+  });
+}
 
 app.get('/', (req, res) => {
   res.send('Hello world!');
