@@ -408,7 +408,7 @@ describe('User POST /auth/signin', () => {
         
         // Assert
         expect(cookie[0].name).toEqual('__Secure-refreshToken');
-        expect(cookie[1].name).toEqual('__Secure-fingerprint');
+        expect(cookie[1].name).toEqual('__Secure-accessFingerprint');
         expect(accessToken.payload).toEqual(expect.objectContaining({sub: savedUser._id.toString()}));
         expect(refreshToken.payload).toEqual(expect.objectContaining({sub: savedUser._id.toString()}));
     });
@@ -491,8 +491,8 @@ describe.only('User GET /auth/token', () => {
         expect(newRefreshToken.payload.fingerprint).not.toEqual(refreshToken.payload.fingerprint);
         expect(newAccessToken.payload).toEqual(expect.objectContaining({sub: savedUser._id.toString()}));
         expect(newRefreshToken.payload).toEqual(expect.objectContaining({sub: savedUser._id.toString()}));
-        expect(newRefreshToken.payload.exp).toEqual(refreshToken.payload.exp);
-        expect(refreshCookie[0].expires).toEqual(new Date(refreshToken.payload.exp * 1000));
+        expect(newRefreshToken.payload.exp).toEqual(refreshToken.payload.exp);        
+        expect(refreshCookie[0].maxAge * 1000).toBeLessThanOrEqual((refreshToken.payload.exp * 1000) - Date.now());
         expect(await redisClient.get(signInCookie[0].value)).toEqual(savedUser._id.toString());
         expect(await redisClient.ttl(signInCookie[0].value)).toBeLessThanOrEqual(3600)
     });

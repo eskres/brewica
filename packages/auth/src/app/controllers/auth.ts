@@ -8,6 +8,7 @@ import { randomUUID, createHash } from 'crypto';
 import * as jose from 'jose';
 import * as jwks from '../../../jwks';
 import { createToken } from '../../utils/createToken'
+import { createFingerprint } from '../../utils/createFingerprint';
 import { redisClient } from '../../utils/redis';
 
 export const signUpPost = async (req: Request, res: Response, next: NextFunction) => {
@@ -101,8 +102,8 @@ export const signUpPost = async (req: Request, res: Response, next: NextFunction
 
 export const signInPost = async(req: Request, res: Response) => {
 
-    const fingerprint: string = randomUUID();
-    const fingerprintHash: string = createHash('sha256').update(fingerprint).digest('hex');
+    const accessFingerprint = createFingerprint();
+    const refreshFingerprint = createFingerprint();
 
     const {emailAddress, password} = req.body;
 
@@ -125,12 +126,13 @@ export const signInPost = async(req: Request, res: Response) => {
             const accessSecret = await jose.importJWK(jwks.ACCESS_TOKEN_SECRET, 'EdDSA');
             const refreshSecret = await jose.importJWK(jwks.REFRESH_TOKEN_SECRET, 'EdDSA');
 
-            const accessToken = await createToken(fingerprintHash,  user._id, '10m', accessSecret);
-            const refreshToken = await createToken(fingerprintHash, user._id, '60m', refreshSecret);
+            const accessToken = await createToken(accessFingerprint.hash,  user._id, '10m', accessSecret);
+            const refreshToken = await createToken(refreshFingerprint.hash, user._id, '60m', refreshSecret);
 
             res.cookie("__Secure-refreshToken", refreshToken, {httpOnly: true, secure: true, sameSite: "strict", maxAge: 3_600_000});
 
-            res.cookie("__Secure-fingerprint", fingerprint, {httpOnly: true, secure: true, sameSite: "strict", maxAge: 600_000});
+            res.cookie("__Secure-accessFingerprint", accessFingerprint.value, {httpOnly: true, secure: true, sameSite: "strict", maxAge: 600_000});
+            res.cookie("__Secure-refreshFingerprint", refreshFingerprint.value, {httpOnly: true, secure: true, sameSite: "strict", maxAge: 3_600_000});
 
             return res.status(200).json({accessToken: accessToken});
         }
@@ -141,7 +143,7 @@ export const signInPost = async(req: Request, res: Response) => {
 }
 export const tokenRefresh = async(req: Request, res: Response) => {    
     // Check refresh token and user context / fingerprint actually exist in cookies
-    if(!req.cookies['__Secure-refreshToken'] || !req.cookies['__Secure-fingerprint']) return res.sendStatus(401);
+    if(!req.cookies['__Secure-refreshToken'] || !req.cookies['__Secure-refreshFingerprint']) return res.sendStatus(401);
 
     // Import JWKS
     const accessPrivateKey = await jose.importJWK(jwks.ACCESS_TOKEN_SECRET, 'EdDSA')
@@ -151,7 +153,7 @@ export const tokenRefresh = async(req: Request, res: Response) => {
     const refreshToken = req.cookies['__Secure-refreshToken'];
     
     // Get unhashed fingerprint
-    const fingerprint = req.cookies['__Secure-fingerprint'];
+    const fingerprint = req.cookies['__Secure-refreshFingerprint'];
     
     // Verify JWT
     await jose.jwtVerify(refreshToken, refreshPublicKey, {
@@ -174,32 +176,34 @@ export const tokenRefresh = async(req: Request, res: Response) => {
             redisClient.quit();
             return res.sendStatus(401);
         }
-
+        
         // Check hashed fingerprint and user id exist in JWT
         if(!jwt.payload['fingerprint'] || !jwt.payload['sub']) return res.sendStatus(401);
-
         // Hash fingerprint
         const fingerprintHash: string = createHash('sha256').update(fingerprint).digest('hex');
-
         // Compare fingerprint hashes
         if(jwt.payload['fingerprint'] as string !== fingerprintHash) return res.sendStatus(401);
         
-        // Generate new fingerprint and hash it
-        const newFingerprint: string = randomUUID();
-        const newFingerprintHash: string = createHash('sha256').update(newFingerprint).digest('hex');
+        // Generate new fingerprints and hashes
+        const accessFingerprint = createFingerprint();
+        const refreshFingerprint = createFingerprint();
 
         // Generate new access token and refresh token
-        const accessToken = await createToken(newFingerprintHash, jwt.payload['sub'] as string, '10m', accessPrivateKey);
-        const newRefreshToken = await createToken(newFingerprintHash, jwt.payload['sub'] as string, jwt.payload.exp as number, refreshPrivateKey);       
+        const accessToken = await createToken(accessFingerprint.hash, jwt.payload['sub'] as string, '10m', accessPrivateKey);
+        const newRefreshToken = await createToken(refreshFingerprint.hash, jwt.payload['sub'] as string, jwt.payload.exp as number, refreshPrivateKey);
         
-        // Set cookies
-        res.cookie("__Secure-refreshToken", newRefreshToken, {httpOnly: true, secure: true, sameSite: "strict", expires: new Date(jwt.payload.exp as number * 1000)});
-        res.cookie("__Secure-fingerprint", newFingerprint, {httpOnly: true, secure: true, sameSite: "strict", expires: new Date(jwt.payload.exp as number * 1000)});
-
         // Add old token to blacklist and set expiry time
         redisClient.set(refreshToken, jwt.payload.sub, {'EXAT': jwt.payload.exp as number});
         // Close redis client
         redisClient.quit();
+
+        // Calculate max age for cookies
+        const maxAge: number = Math.floor((jwt.payload.exp as number * 1000) - Date.now());    
+        
+        // Set cookies
+        res.cookie("__Secure-refreshToken", newRefreshToken, {httpOnly: true, secure: true, sameSite: "strict", maxAge: maxAge});
+        res.cookie("__Secure-accessFingerprint", accessFingerprint.value, {httpOnly: true, secure: true, sameSite: "strict", maxAge: maxAge});
+        res.cookie("__Secure-refreshFingerprint", refreshFingerprint.value, {httpOnly: true, secure: true, sameSite: "strict", maxAge: maxAge});
         
         // Issue new access token
         return res.status(200).json({accessToken: accessToken});
