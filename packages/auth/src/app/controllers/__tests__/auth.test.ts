@@ -440,12 +440,13 @@ describe('User GET /auth/token', () => {
     });
     
     afterAll(async () => {
-        await redisClient.quit();
+        if (redisClient.isOpen) {
+            await redisClient.quit();
+        }
     });
 
     test('successfully get new access and refresh tokens', async () => {
         // Arrange
-
         // Credentials for sign in
         const testUser: ISignIn = ({
             emailAddress: savedUser.emailAddress,
@@ -482,9 +483,11 @@ describe('User GET /auth/token', () => {
         // Verify new JWTs
         const newAccessToken = await jose.jwtVerify(refreshResponse.body.accessToken, accessSecret);
         const newRefreshToken = await jose.jwtVerify(refreshCookie[0].value, refreshSecret);
+
+        // Check redis connection
         if (!redisClient.isOpen) {
             await redisClient.connect();
-        };
+        }
 
         // Assert
         expect(newAccessToken).toBeDefined;
@@ -580,7 +583,7 @@ describe('User GET /auth/token', () => {
     });
 });
 
-describe.only('User GET /auth/signout', () => {
+describe('User GET /auth/signout', () => {
     // Declare user variable
     let savedUser: IUser;
 
@@ -606,7 +609,9 @@ describe.only('User GET /auth/signout', () => {
     });
 
     afterAll(async () => {
-        await redisClient.quit();
+        if (redisClient.isOpen) {
+            await redisClient.quit();
+        }
     });
     
     test('successfully sign out and clear refresh token cookie', async () => {
@@ -632,12 +637,14 @@ describe.only('User GET /auth/signout', () => {
         .get("/auth/signout")
         .set('Cookie', signInResponse.headers['set-cookie'])
         .send()
-        .expect(200);
+        .expect(205);        
 
         if (!redisClient.isOpen) {
             await redisClient.connect();
-        };
-        expect(redisClient.exists(signInCookie[0].value)).toEqual(1);
+        }
+
+        // Assert
+        expect(await redisClient.exists(signInCookie[0].value)).toEqual(1);
         expect(signOutResponse.header['set-cookie']).not.toBeDefined;
     });
 });
