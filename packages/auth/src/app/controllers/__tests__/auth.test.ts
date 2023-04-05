@@ -414,7 +414,7 @@ describe('User POST /auth/signin', () => {
     });
 });
 
-describe.only('User GET /auth/token', () => {
+describe('User GET /auth/token', () => {
     // Declare user variable
     let savedUser: IUser;
 
@@ -439,6 +439,10 @@ describe.only('User GET /auth/token', () => {
         return savedUser = await User.findOne({emailAddress: newUser.emailAddress});
     });
     
+    afterAll(async () => {
+        await redisClient.quit();
+    });
+
     test('successfully get new access and refresh tokens', async () => {
         // Arrange
 
@@ -494,7 +498,7 @@ describe.only('User GET /auth/token', () => {
         expect(newRefreshToken.payload.exp).toEqual(refreshToken.payload.exp);        
         expect(refreshCookie[0].maxAge * 1000).toBeLessThanOrEqual((refreshToken.payload.exp * 1000) - Date.now());
         expect(await redisClient.get(signInCookie[0].value)).toEqual(savedUser._id.toString());
-        expect(await redisClient.ttl(signInCookie[0].value)).toBeLessThanOrEqual(3600)
+        expect(await redisClient.ttl(signInCookie[0].value)).toBeLessThanOrEqual(3600);
     });
     test('request should fail due to invalid token', async () => {
         // Arrange
@@ -573,5 +577,67 @@ describe.only('User GET /auth/token', () => {
         // Assert
         expect(refreshResponse.header['set-cookie']).not.toBeDefined;
         expect(refreshResponse.body.accessToken).not.toBeDefined;
+    });
+});
+
+describe.only('User GET /auth/signout', () => {
+    // Declare user variable
+    let savedUser: IUser;
+
+    // Generate a password
+    const password: string = faker.internet.password(15, false, /\w/, '_0');
+
+    // Claims for user sign up
+    const newUser: IUser = ({
+        username: faker.internet.userName(),
+        emailAddress: faker.internet.email(),
+        password: password,
+        passwordConf: password
+    }); 
+    
+    beforeAll(async () => {
+        // Send request to sign up user
+        await supertest(app)
+        .post("/auth/signup")
+        .send(newUser)
+        .expect(200);
+        // Get user we just created from DB
+        return savedUser = await User.findOne({emailAddress: newUser.emailAddress});
+    });
+
+    afterAll(async () => {
+        await redisClient.quit();
+    });
+    
+    test('successfully sign out and clear refresh token cookie', async () => {
+        // Arrange
+        // Credentials for sign in
+        const testUser: ISignIn = ({
+            emailAddress: savedUser.emailAddress,
+            password: password,
+        });
+
+        // Act
+        // Sign user in
+        const signInResponse: supertest.Response = await supertest(app)
+        .post("/auth/signin")
+        .send(testUser)
+        .expect(200);
+        
+        // Parse cookies from sign in response
+        const signInCookie = setCookie.parse(signInResponse);
+        
+        // Request refresh token
+        const signOutResponse: supertest.Response = await supertest(app)
+        .get("/auth/signout")
+        .set('Cookie', signInResponse.headers['set-cookie'])
+        .send()
+        .expect(200);
+
+        if (!redisClient.isOpen) {
+            await redisClient.connect();
+        };
+        expect(redisClient.exists(signInCookie[0].value)).toEqual(1);
+        expect(signOutResponse.header['set-cookie']).not.toBeDefined;
     });
 });
