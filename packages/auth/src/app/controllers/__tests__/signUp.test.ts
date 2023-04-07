@@ -7,7 +7,6 @@ import User from '../../models/User';
 import type { IUser } from '../../../../../types';
 import { transport } from '../../../utils/nodemailerTransport';
 
-
 beforeAll(async () => {
     await connectDB();
 });
@@ -19,7 +18,6 @@ afterAll(async () => {
 });
 
 describe('User POST /auth/signup', () => {
-
 
     test('catch pre-existing username, do not save, send error message to user', async () => {
         // Arrange
@@ -324,5 +322,4 @@ describe('User POST /auth/signup', () => {
         expect(savedUser.emailAddress).toEqual(testUser.emailAddress.toLocaleLowerCase());
         expect(response.body.message).toEqual("Account created successfully");
     });
-
 });

@@ -8,7 +8,6 @@ import type { IUser, ISignIn } from '../../../../../types';
 import * as setCookie from 'set-cookie-parser'
 import { redisClient } from '../../../utils/redis';
 
-
 beforeAll(async () => {
     await connectDB();
 });

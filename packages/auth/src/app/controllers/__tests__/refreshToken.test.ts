@@ -109,6 +109,7 @@ describe('User GET /auth/token', () => {
         expect(await redisClient.get(signInCookie[0].value)).toEqual(savedUser._id.toString());
         expect(await redisClient.ttl(signInCookie[0].value)).toBeLessThanOrEqual(3600);
     });
+    
     test('request should fail due to invalid token', async () => {
         // Arrange
         // Credentials for sign in
@@ -135,6 +136,7 @@ describe('User GET /auth/token', () => {
         expect(refreshResponse.header['set-cookie']).not.toBeDefined;
         expect(refreshResponse.body.accessToken).not.toBeDefined;
     });
+
     test('request should fail due to missing fingerprint', async () => {
         // Arrange
         // Credentials for sign in
@@ -161,6 +163,7 @@ describe('User GET /auth/token', () => {
         expect(refreshResponse.header['set-cookie']).not.toBeDefined;
         expect(refreshResponse.body.accessToken).not.toBeDefined;        
     });
+
     test('request should fail due to missing token', async () => {
         // Arrange
         // Credentials for sign in

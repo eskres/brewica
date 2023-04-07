@@ -22,7 +22,6 @@ export const signUpPost = async (req: Request, res: Response, next: NextFunction
     }
 
     try{
-    
     // Validate password
     if (!password.match(/^(?=.*[A-Za-z])(?=.*\d)(?=.*[!#$%&'*+/=?^_‘{|}~-])[A-Za-z\d!#$%&'*+/=?^_‘{|}~-]{8,}/)) {
         return res.status(400).json({message:`Password requires 8 or more characters with a mix of letters, numbers & symbols`});
@@ -55,7 +54,6 @@ export const signUpPost = async (req: Request, res: Response, next: NextFunction
 
     if (!username.match(/^[\w\-.]{1,28}$/)) {
         return res.status(400).json({message:'Usernames must be no longer than 28 characters and are not case sensitive. Only letters, numbers, dashes and underscores are permitted.'});
-
     }
     req.body.username = username;
         

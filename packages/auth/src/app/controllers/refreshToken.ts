@@ -77,5 +77,5 @@ export const refreshToken = async(req: Request, res: Response) => {
     .catch((err) => {
         console.log(err);
         return res.sendStatus(401);
-    })
+    });
 }

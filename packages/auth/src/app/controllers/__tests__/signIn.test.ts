@@ -9,7 +9,6 @@ import * as jose from 'jose';
 import * as setCookie from 'set-cookie-parser'
 import * as jwks from '../../../../jwks'
 
-
 beforeAll(async () => {
     await connectDB();
 });
@@ -21,7 +20,6 @@ afterAll(async () => {
 });
 
 describe('User POST /auth/signin', () => {
-
     let savedUser: IUser;
     const password: string = faker.internet.password(15, false, /\w/, '_0');
 
