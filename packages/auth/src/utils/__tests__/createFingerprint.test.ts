@@ -1,6 +1,6 @@
 import { createFingerprint } from "../createFingerprint";
 
-describe.only('create fingerprints for the prevention of token sidejacking', () => { 
+describe('create fingerprints for the prevention of token sidejacking', () => { 
     test('it should return an uuid and a SHA256 hash of the uuid ', async () => {
         const fingerprints = createFingerprint()
         
