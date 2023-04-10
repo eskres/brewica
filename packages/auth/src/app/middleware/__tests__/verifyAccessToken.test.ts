@@ -1,12 +1,12 @@
 import { faker } from "@faker-js/faker";
 import { KeyLike, importJWK, SignJWT, generateKeyPair } from "jose";
 import { randomUUID, createHash } from "crypto";
-import { REFRESH_TOKEN_SECRET } from '../../../../jwks'
+import { ACCESS_TOKEN_SECRET } from '../../../../jwks'
 import { verifyAccessToken } from '../verifyAccessToken'
 import supertest from 'supertest';
 import { app } from '../../../main';
 
-describe.only('verify the validity of access token with verifyAccessToken.ts middleware', () => {
+describe('verify the validity of access token with verifyAccessToken.ts middleware', () => {
 
         let fingerprint: string;
         let sub: string;
@@ -23,7 +23,7 @@ describe.only('verify the validity of access token with verifyAccessToken.ts mid
             fingerprint = randomUUID();
             sub = faker.datatype.string(12);
             exp = Date.now() + 3_600_000;
-            privateKey = await importJWK(REFRESH_TOKEN_SECRET, 'EdDSA');
+            privateKey = await importJWK(ACCESS_TOKEN_SECRET, 'EdDSA');
             fingerprintHash = createHash('sha256').update(fingerprint).digest('hex');
         });
 
@@ -38,7 +38,7 @@ describe.only('verify the validity of access token with verifyAccessToken.ts mid
 
         const keys = await generateKeyPair('RS256');
 
-        const token = new SignJWT({fingerprint: fingerprint})
+        const token = await new SignJWT({fingerprint: fingerprintHash})
             .setSubject(sub)
             .setProtectedHeader({alg: 'RS256'})
             .setIssuedAt()
@@ -50,13 +50,13 @@ describe.only('verify the validity of access token with verifyAccessToken.ts mid
 
         const response: supertest.Response = await supertest(app)
             .get("/test")
-            .set('Cookie', [`__Secure-accessFingerprint=${fingerprintHash}`])
-            .send(token)
+            .set('Cookie', [`__Secure-accessFingerprint=${fingerprint}`])
+            .send({accessToken: token})
             .expect(403);
     });
     
     test('send request with invalid token (issuer) and receive 403', async () => {
-        const token = new SignJWT({fingerprint: fingerprint})
+        const token = await new SignJWT({fingerprint: fingerprintHash})
             .setSubject(sub)
             .setProtectedHeader({alg: 'EdDSA'})
             .setIssuedAt()
@@ -68,13 +68,13 @@ describe.only('verify the validity of access token with verifyAccessToken.ts mid
 
         const response: supertest.Response = await supertest(app)
             .get("/test")
-            .set('Cookie', [`__Secure-accessFingerprint=${fingerprintHash}`])
-            .send(token)
+            .set('Cookie', [`__Secure-accessFingerprint=${fingerprint}`])
+            .send({accessToken: token})
             .expect(403);
     });
 
     test('send request with invalid token (audience) and receive 403', async () => {
-        const token = new SignJWT({fingerprint: fingerprint})
+        const token = await new SignJWT({fingerprint: fingerprintHash})
             .setSubject(sub)
             .setProtectedHeader({alg: 'EdDSA'})
             .setIssuedAt()
@@ -86,13 +86,13 @@ describe.only('verify the validity of access token with verifyAccessToken.ts mid
 
         const response: supertest.Response = await supertest(app)
             .get("/test")
-            .set('Cookie', [`__Secure-accessFingerprint=${fingerprintHash}`])
-            .send(token)
+            .set('Cookie', [`__Secure-accessFingerprint=${fingerprint}`])
+            .send({accessToken: token})
             .expect(403);
     });
 
     test('send request with invalid token (fingerprint) and receive 403', async () => {
-        const token = new SignJWT({fingerprint: randomUUID()})
+        const token = await new SignJWT({fingerprint: faker.datatype.string(64)})
             .setSubject(sub)
             .setProtectedHeader({alg: 'EdDSA'})
             .setIssuedAt()
@@ -104,13 +104,13 @@ describe.only('verify the validity of access token with verifyAccessToken.ts mid
 
         const response: supertest.Response = await supertest(app)
             .get("/test")
-            .set('Cookie', [`__Secure-accessFingerprint=${fingerprintHash}`])
-            .send(token)
+            .set('Cookie', [`__Secure-accessFingerprint=${fingerprint}`])
+            .send({accessToken: token})
             .expect(403);
     });
 
     test('send request with valid token and receive 200', async () => {
-        const token = new SignJWT({fingerprint: fingerprint})
+        const token = await new SignJWT({fingerprint: fingerprintHash})
             .setSubject(sub)
             .setProtectedHeader({alg: 'EdDSA'})
             .setIssuedAt()
@@ -122,8 +122,8 @@ describe.only('verify the validity of access token with verifyAccessToken.ts mid
 
         const response: supertest.Response = await supertest(app)
             .get("/test")
-            .set('Cookie', [`__Secure-accessFingerprint=${fingerprintHash}`])
-            .send(token)
+            .set('Cookie', [`__Secure-accessFingerprint=${fingerprint}`])
+            .send({accessToken: token})
             .expect(200);
     });
 });
