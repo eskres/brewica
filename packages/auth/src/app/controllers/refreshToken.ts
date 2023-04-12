@@ -81,4 +81,5 @@ export const refreshToken = async(req: Request, res: Response) => {
         console.log(err);
         return res.sendStatus(401);
     });
+    return
 }

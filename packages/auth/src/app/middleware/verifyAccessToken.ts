@@ -20,10 +20,11 @@ export const verifyAccessToken = async (req: Request, res: Response, next: NextF
         const fingerprintHash: string = createHash('sha256').update(req.cookies['__Secure-accessFingerprint'] as string).digest('hex');
         // Compare fingerprint hashes
         if(fingerprint as string !== fingerprintHash) return res.sendStatus(403);
+        return next();
     })
     .catch((err) => {
-        // console.log(err);
-        if (err) return res.sendStatus(403);
+        console.log(err);
+        return res.sendStatus(403);
     })
-    next();
+    return next();
 }

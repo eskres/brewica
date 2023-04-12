@@ -64,7 +64,7 @@ describe('User GET /auth/token', () => {
             .expect(200);
     });
 
-    test('successfully get new access and refresh tokens', async () => {
+    test('successfully get new access and refresh tokens then blacklist old refresh token', async () => {
         // Arrange
         
         // Get public keys to verify JWTs
@@ -98,6 +98,16 @@ describe('User GET /auth/token', () => {
         if (!redisClient.isOpen) {
             await redisClient.connect();
         }
+        
+        // query redis with refresh token hash
+        const redisQuery = await redisClient
+        .multi()
+        // get expiry timestamp
+        .get(refreshTokenHash)
+        // get ttl in seconds
+        .ttl(refreshTokenHash)
+        .exec();       
+
         // Assert
         expect(newAccessToken).toBeDefined;
         expect(newRefreshToken).toBeDefined;
@@ -113,8 +123,9 @@ describe('User GET /auth/token', () => {
 
         expect(newRefreshToken.payload.exp).toEqual(refreshToken.payload.exp);        
         expect(refreshCookie[0].maxAge * 1000).toBeLessThanOrEqual((refreshToken.payload.exp * 1000) - Date.now());
-        expect(await redisClient.get(refreshTokenHash)).toEqual(refreshToken.payload.exp.toString());
-        expect(await redisClient.ttl(refreshTokenHash)).toBeLessThanOrEqual(3600);
+
+        expect(redisQuery[0]).toEqual(refreshToken.payload.exp.toString());
+        expect(redisQuery[1]).toBeLessThanOrEqual(3600);
     });
     
     test('request should fail due to invalid token', async () => {
