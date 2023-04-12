@@ -14,7 +14,7 @@ afterEach(async () => {
     await dropCollections();
 });
 afterAll(async () => {
-    await dropDB;
+    await dropDB();
 });
 
 describe('User POST /auth/signup', () => {

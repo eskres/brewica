@@ -1,4 +1,5 @@
 import type { Request, Response } from 'express'
+import { createHash } from 'crypto';
 import * as jose from 'jose';
 import * as jwks from '../../../jwks';
 import { redisClient } from '../../utils/redis';
@@ -6,11 +7,13 @@ import { redisClient } from '../../utils/redis';
 export const signOut = async (req: Request, res: Response) => {
     // check req for cookies
     if(!req.cookies['__Secure-refreshToken']) return res.sendStatus(205);
+    // Get refresh token
+    const refreshToken = req.cookies['__Secure-refreshToken'];
+    // hash token
+    const refreshTokenHash: string = createHash('sha256').update(refreshToken as string).digest('hex');
 
     // Import JWKS
     const refreshPublicKey = await jose.importJWK(jwks.REFRESH_TOKEN_PUBLIC, 'EdDSA')
-    // Get refresh token
-    const refreshToken = req.cookies['__Secure-refreshToken'];
 
     // Verify JWT
     const jwt = await jose.jwtVerify(refreshToken, refreshPublicKey, {
@@ -28,10 +31,12 @@ export const signOut = async (req: Request, res: Response) => {
         });
     }
 
-    // Add old token to blacklist and set expiry time
-    redisClient.set(refreshToken, jwt.payload.sub as string, {'EXAT': jwt.payload.exp as number});
-    // Close redis client
-    redisClient.quit();
+    // Add token to blacklist and set expiry time
+    redisClient.set(refreshTokenHash, jwt.payload.exp as number, {'EXAT': jwt.payload.exp as number})
+        .then(()=>{
+            // Close redis client
+            redisClient.quit();
+        });
     
     // Clear cookies
     res.clearCookie('__Secure-accessFingerprint', { httpOnly: true, secure: true, sameSite: "strict" });

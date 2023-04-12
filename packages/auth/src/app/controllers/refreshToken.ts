@@ -17,6 +17,7 @@ export const refreshToken = async(req: Request, res: Response) => {
     const refreshPrivateKey = await jose.importJWK(jwks.REFRESH_TOKEN_SECRET, 'EdDSA')
     // Get refresh token
     const refreshToken = req.cookies['__Secure-refreshToken'];
+    const refreshTokenHash: string = createHash('sha256').update(refreshToken as string).digest('hex');
     
     // Get unhashed fingerprint
     const fingerprint = req.cookies['__Secure-refreshFingerprint'];
@@ -38,7 +39,7 @@ export const refreshToken = async(req: Request, res: Response) => {
             });
         }
         // Check refresh token isn't blacklisted
-        if (await redisClient.exists(refreshToken) !== 0) {
+        if (await redisClient.exists(refreshTokenHash) !== 0) {
             redisClient.quit();
             return res.sendStatus(401);
         }
@@ -59,9 +60,11 @@ export const refreshToken = async(req: Request, res: Response) => {
         const newRefreshToken = await createToken(refreshFingerprint.hash, jwt.payload['sub'] as string, jwt.payload.exp as number, refreshPrivateKey);
         
         // Add old token to blacklist and set expiry time
-        redisClient.set(refreshToken, jwt.payload.sub, {'EXAT': jwt.payload.exp as number});
-        // Close redis client
-        redisClient.quit();
+        redisClient.set(refreshTokenHash, jwt.payload.exp as number, {'EXAT': jwt.payload.exp as number})
+            .then(() => {
+                // Close redis client
+                redisClient.quit(); 
+            });
 
         // Calculate max age for cookies
         const maxAge: number = Math.floor((jwt.payload.exp as number * 1000) - Date.now());    

@@ -8,11 +8,9 @@ export const verifyAccessToken = async (req: Request, res: Response, next: NextF
     const publicKey = await importJWK(ACCESS_TOKEN_PUBLIC, 'EdDSA');
     
     if (!req.body.accessToken) return res.sendStatus(403);
-    if (!req.cookies) return res.sendStatus(403);
-    
-    const token = req.body.accessToken;
+    if (!req.cookies['__Secure-accessFingerprint']) return res.sendStatus(403);
 
-    await jwtVerify(token, publicKey, {
+    await jwtVerify(req.body.accessToken, publicKey, {
         algorithms: ['EdDSA'],
         issuer: 'https://auth.brewica.com',
         audience: 'https://www.brewica.com'

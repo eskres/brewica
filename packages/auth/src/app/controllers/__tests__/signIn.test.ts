@@ -16,12 +16,15 @@ afterEach(async () => {
     await dropCollections();
 });
 afterAll(async () => {
-    await dropDB;
+    await dropDB();
 });
 
 describe('User POST /auth/signin', () => {
     let savedUser: IUser;
-    const password: string = faker.internet.password(15, false, /\w/, '_0');
+    let password: string;
+    
+    beforeAll(async () => {
+    password = faker.internet.password(15, false, /\w/, '_0');
 
     const newUser: IUser = ({
         username: faker.internet.userName(),
@@ -30,12 +33,11 @@ describe('User POST /auth/signin', () => {
         passwordConf: password
     });
 
-    beforeAll(async () => {
-        await supertest(app)
+    await supertest(app)
         .post("/auth/signup")
         .send(newUser)
         .expect(200);;
-        return savedUser = await User.findOne({emailAddress: newUser.emailAddress});
+    return savedUser = await User.findOne({emailAddress: newUser.emailAddress});
     });
 
     test('catch an incorrect password and send error message to user', async () => {

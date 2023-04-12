@@ -11,7 +11,7 @@ export const connectDB = async () => {
 };
 
 export const dropDB = async () => {
-    if (mongoServer) {        
+    if (mongoServer && con) {        
         await con.dropDatabase();
         await con.close();
         await mongoServer.stop();
