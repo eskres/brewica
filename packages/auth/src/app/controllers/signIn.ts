@@ -40,4 +40,5 @@ export const signInPost = async (req: Request, res: Response) => {
         console.log(error)
         res.status(500).json({"message": "Sign in failed"});
     }
+    return
 }
