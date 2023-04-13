@@ -5,12 +5,20 @@ import { createHash } from 'crypto';
 
 export const verifyAccessToken = async (req: Request, res: Response, next: NextFunction) => {
 
+    let token: string | undefined;
     const publicKey = await importJWK(ACCESS_TOKEN_PUBLIC, 'EdDSA');
     
-    if (!req.body.accessToken) return res.sendStatus(403);
+    if (req.headers['authorization'] === undefined) {
+        return res.sendStatus(403);
+    } else {
+        const parts = req.headers['authorization'].split(' ');        
+        if (parts.length === 2 && parts[0] === 'Bearer') {
+            token = parts[1];
+        }
+    }
     if (!req.cookies['__Secure-accessFingerprint']) return res.sendStatus(403);
 
-    await jwtVerify(req.body.accessToken, publicKey, {
+    await jwtVerify(token as string, publicKey, {
         algorithms: ['EdDSA'],
         issuer: 'https://auth.brewica.com',
         audience: 'https://www.brewica.com'

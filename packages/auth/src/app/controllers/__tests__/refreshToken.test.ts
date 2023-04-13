@@ -78,6 +78,7 @@ describe('User GET /auth/token', () => {
         // Request refresh token
         const refreshResponse: supertest.Response = await supertest(app)
             .get("/auth/token")
+            .auth(signInResponse.body.access_token, {type: 'bearer'})
             .set('Cookie', signInResponse.headers['set-cookie'])
             .send()
             .expect(200);
@@ -87,11 +88,11 @@ describe('User GET /auth/token', () => {
         const refreshTokenHash: string = createHash('sha256').update(signInCookie[0].value as string).digest('hex');
 
         // Verify original JWTs
-        const accessToken = await jose.jwtVerify(signInResponse.body.accessToken, accessSecret);
+        const accessToken = await jose.jwtVerify(signInResponse.body.access_token, accessSecret);
         const refreshToken = await jose.jwtVerify(signInCookie[0].value, refreshSecret);
 
         // Verify new JWTs
-        const newAccessToken = await jose.jwtVerify(refreshResponse.body.accessToken, accessSecret);
+        const newAccessToken = await jose.jwtVerify(refreshResponse.body.access_token, accessSecret);
         const newRefreshToken = await jose.jwtVerify(refreshCookie[0].value, refreshSecret);
 
         // Check redis connection
@@ -133,13 +134,14 @@ describe('User GET /auth/token', () => {
         // Request refresh token
         const refreshResponse: supertest.Response = await supertest(app)
             .get("/auth/token")
-            .set('Cookie', [`__Secure-refreshToken=${signInResponse.body.accessToken}`, signInResponse.header['set-cookie'][1]])
+            .auth(signInResponse.body.access_token, {type: 'bearer'})
+            .set('Cookie', [`__Secure-refreshToken=${signInResponse.body.access_token}`, signInResponse.header['set-cookie'][1]])
             .send()
             .expect(401);
         
         // Assert
         expect(refreshResponse.header['set-cookie']).not.toBeDefined;
-        expect(refreshResponse.body.accessToken).not.toBeDefined;
+        expect(refreshResponse.body.access_token).not.toBeDefined;
     });
 
     test('request should fail due to missing fingerprint', async () => {
@@ -147,13 +149,14 @@ describe('User GET /auth/token', () => {
         // Request refresh token
         const refreshResponse: supertest.Response = await supertest(app)
             .get("/auth/token")
+            .auth(signInResponse.body.access_token, {type: 'bearer'})
             .set('Cookie', signInResponse.header['set-cookie'][0])
             .send()
             .expect(401);
         
         // Assert
         expect(refreshResponse.header['set-cookie']).not.toBeDefined;
-        expect(refreshResponse.body.accessToken).not.toBeDefined;        
+        expect(refreshResponse.body.access_token).not.toBeDefined;        
     });
 
     test('request should fail due to missing token', async () => {
@@ -161,12 +164,13 @@ describe('User GET /auth/token', () => {
         // Request refresh token
         const refreshResponse: supertest.Response = await supertest(app)
             .get("/auth/token")
+            .auth(signInResponse.body.access_token, {type: 'bearer'})
             .set('Cookie', signInResponse.header['set-cookie'][1])
             .send()
             .expect(401);
 
         // Assert
         expect(refreshResponse.header['set-cookie']).not.toBeDefined;
-        expect(refreshResponse.body.accessToken).not.toBeDefined;
+        expect(refreshResponse.body.access_token).not.toBeDefined;
     });
 });

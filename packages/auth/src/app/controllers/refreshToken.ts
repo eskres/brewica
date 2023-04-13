@@ -75,7 +75,11 @@ export const refreshToken = async(req: Request, res: Response) => {
         res.cookie("__Secure-refreshFingerprint", refreshFingerprint.value, {httpOnly: true, secure: true, sameSite: "strict", maxAge: maxAge});
         
         // Issue new access token
-        return res.status(200).json({accessToken: accessToken});
+        return res.status(200).json({
+            access_token: accessToken,
+            token_type: 'Bearer',
+            expires_in: 600,
+        });
     })
     .catch((err) => {
         console.log(err);

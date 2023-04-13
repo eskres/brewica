@@ -92,7 +92,7 @@ describe('User POST /auth/signin', () => {
         .expect(200);
         const cookie = setCookie.parse(response);
         
-        const accessToken = await jose.jwtVerify(response.body.accessToken, accessSecret);
+        const accessToken = await jose.jwtVerify(response.body.access_token, accessSecret);
         const refreshToken = await jose.jwtVerify(cookie[0].value, refreshSecret);
         
         // Assert

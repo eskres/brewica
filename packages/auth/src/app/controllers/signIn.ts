@@ -34,7 +34,11 @@ export const signInPost = async (req: Request, res: Response) => {
             res.cookie("__Secure-accessFingerprint", accessFingerprint.value, {httpOnly: true, secure: true, sameSite: "strict", maxAge: 600_000});
             res.cookie("__Secure-refreshFingerprint", refreshFingerprint.value, {httpOnly: true, secure: true, sameSite: "strict", maxAge: 3_600_000});
 
-            return res.status(200).json({accessToken: accessToken});
+            return res.status(200).json({
+                access_token: accessToken,
+                token_type: 'Bearer',
+                expires_in: 600,
+            });
         }
     } catch(error) {
         console.log(error)

@@ -50,8 +50,8 @@ describe('verify the validity of access token with verifyAccessToken.ts middlewa
 
         await supertest(app)
             .get("/test")
+            .auth(token, {type: 'bearer'})
             .set('Cookie', [`__Secure-accessFingerprint=${fingerprint}`])
-            .send({accessToken: token})
             .expect(403);
     });
     
@@ -68,8 +68,8 @@ describe('verify the validity of access token with verifyAccessToken.ts middlewa
 
         await supertest(app)
             .get("/test")
+            .auth(token, {type: 'bearer'})
             .set('Cookie', [`__Secure-accessFingerprint=${fingerprint}`])
-            .send({accessToken: token})
             .expect(403);
     });
 
@@ -86,8 +86,8 @@ describe('verify the validity of access token with verifyAccessToken.ts middlewa
 
         await supertest(app)
             .get("/test")
+            .auth(token, {type: 'bearer'})
             .set('Cookie', [`__Secure-accessFingerprint=${fingerprint}`])
-            .send({accessToken: token})
             .expect(403);
     });
 
@@ -104,8 +104,8 @@ describe('verify the validity of access token with verifyAccessToken.ts middlewa
 
         await supertest(app)
             .get("/test")
+            .auth(token, {type: 'bearer'})
             .set('Cookie', [`__Secure-accessFingerprint=${fingerprint}`])
-            .send({accessToken: token})
             .expect(403);
     });
 
@@ -122,8 +122,8 @@ describe('verify the validity of access token with verifyAccessToken.ts middlewa
             
             await supertest(app)
             .get("/test")
+            .auth(token, {type: 'bearer'})
             .set('Cookie', [`__Secure-accessFingerprint=${fingerprint}`])
-            .send({accessToken: token})
             .expect(200);
     });
 });

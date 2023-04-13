@@ -68,6 +68,7 @@ describe('User GET /auth/signout', () => {
         // Request refresh token
         const signOutResponse: supertest.Response = await supertest(app)
         .get("/auth/signout")
+        .auth(signInResponse.body.access_token, {type: 'bearer'})
         .set('Cookie', signInResponse.headers['set-cookie'])
         .send()
         .expect(205);
