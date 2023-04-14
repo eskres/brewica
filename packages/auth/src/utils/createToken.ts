@@ -1,4 +1,4 @@
-import { SignJWT, KeyLike } from "jose";
+import { SignJWT, type KeyLike } from "jose";
 import { randomUUID } from "crypto";
 
 export function createToken(fingerprint: string, sub: string, exp: string | number, secret: KeyLike | Uint8Array) {

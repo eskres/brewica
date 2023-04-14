@@ -6,7 +6,7 @@ import { verifyAccessToken } from '../verifyAccessToken'
 import supertest from 'supertest';
 import { app } from '../../../main';
 
-describe.only('verify the validity of access token with verifyAccessToken.ts middleware', () => {
+describe('verify the validity of access token with verifyAccessToken.ts middleware', () => {
 
     let fingerprint: string;
     let sub: string;

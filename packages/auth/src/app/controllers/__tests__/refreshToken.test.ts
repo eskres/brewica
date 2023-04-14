@@ -10,6 +10,7 @@ import * as setCookie from 'set-cookie-parser'
 import * as jwks from '../../../../jwks'
 import { redisClient } from '../../../utils/redis';
 import { createHash } from 'crypto';
+import { createToken } from '../../../utils/createToken';
 
 beforeAll(async () => {
     await connectDB();
@@ -64,9 +65,9 @@ describe('User GET /auth/token', () => {
             .expect(200);
     });
 
-    test('successfully get new access and refresh tokens then blacklist old refresh token', async () => {
+    test('successfully get new access and refresh tokens then blacklist old refresh token', async () => {        
         // Arrange
-        
+
         // Get public keys to verify JWTs
         const accessSecret = await jose.importJWK(jwks.ACCESS_TOKEN_PUBLIC, 'EdDSA');
         const refreshSecret = await jose.importJWK(jwks.REFRESH_TOKEN_PUBLIC, 'EdDSA');
@@ -135,10 +136,37 @@ describe('User GET /auth/token', () => {
         const refreshResponse: supertest.Response = await supertest(app)
             .get("/auth/token")
             .auth(signInResponse.body.access_token, {type: 'bearer'})
-            .set('Cookie', [`__Secure-refreshToken=${signInResponse.body.access_token}`, signInResponse.header['set-cookie'][1]])
+            .set('Cookie', [`__Secure-refreshToken=${signInResponse.body.access_token}; Max-Age=3600; Path=/; HttpOnly; Secure; SameSite=Strict; ${signInResponse.header['set-cookie'][2]}; ${signInResponse.header['set-cookie'][1]}`])
             .send()
             .expect(401);
         
+        // Assert
+        expect(refreshResponse.header['set-cookie']).not.toBeDefined;
+        expect(refreshResponse.body.access_token).not.toBeDefined;
+    });
+
+    test('request should fail due to expired token', async () => {        
+        // Get fingerprint from cookie
+        let parts = signInResponse.header['set-cookie']
+        parts = parts[1].split(';')
+        const value = parts[0].split('=')[1]
+        
+        // import private key
+        const refreshPrivateKey = await jose.importJWK(jwks.REFRESH_TOKEN_SECRET, 'EdDSA');
+        // Hash fingerprint for token
+        const hash: string = createHash('sha256').update(value).digest('hex');
+        // Generate expired access token and refresh token
+        const expiredRefreshToken = await createToken(hash, savedUser._id as string, Date.now() - 3_600_000, refreshPrivateKey);
+
+        // Act
+        // Request refresh token
+        const refreshResponse: supertest.Response = await supertest(app)
+            .get("/auth/token")
+            .auth(signInResponse.body.access_token, {type: 'bearer'})
+            .set('Cookie', [`__Secure-refreshToken=${expiredRefreshToken}; Max-Age=3600; Path=/; HttpOnly; Secure; SameSite=Strict; ${signInResponse.header['set-cookie'][2]}; ${signInResponse.header['set-cookie'][1]}`])
+            .send()
+            .expect(418);
+
         // Assert
         expect(refreshResponse.header['set-cookie']).not.toBeDefined;
         expect(refreshResponse.body.access_token).not.toBeDefined;
@@ -150,6 +178,7 @@ describe('User GET /auth/token', () => {
         const refreshResponse: supertest.Response = await supertest(app)
             .get("/auth/token")
             .auth(signInResponse.body.access_token, {type: 'bearer'})
+            // send refresh token cookie only
             .set('Cookie', signInResponse.header['set-cookie'][0])
             .send()
             .expect(401);
@@ -165,7 +194,8 @@ describe('User GET /auth/token', () => {
         const refreshResponse: supertest.Response = await supertest(app)
             .get("/auth/token")
             .auth(signInResponse.body.access_token, {type: 'bearer'})
-            .set('Cookie', signInResponse.header['set-cookie'][1])
+            // send fingerprint cookies
+            .set('Cookie', `${signInResponse.header['set-cookie'][2]}; ${signInResponse.header['set-cookie'][1]}`)
             .send()
             .expect(401);
 

@@ -29,6 +29,8 @@ export const refreshToken = async(req: Request, res: Response) => {
         audience: 'https://www.brewica.com'
     })
     .then(async (jwt) => {
+        // Check token hasn't expired    
+        if (jwt.payload['exp'] as number <= Date.now()) return res.sendStatus(418);
         // Check redis client isn't already open before connecting
         if (!redisClient.isOpen) {
             await redisClient.connect()
@@ -60,14 +62,14 @@ export const refreshToken = async(req: Request, res: Response) => {
         const newRefreshToken = await createToken(refreshFingerprint.hash, jwt.payload['sub'] as string, jwt.payload.exp as number, refreshPrivateKey);
         
         // Add old token to blacklist and set expiry time
-        redisClient.set(refreshTokenHash, jwt.payload.exp as number, {'EXAT': jwt.payload.exp as number})
+        redisClient.set(refreshTokenHash, jwt.payload.exp as number, {'PXAT': jwt.payload.exp as number})
             .then(() => {
                 // Close redis client
                 redisClient.quit(); 
             });
 
         // Calculate max age for cookies
-        const maxAge: number = Math.floor((jwt.payload.exp as number * 1000) - Date.now());    
+        const maxAge: number = Math.floor((jwt.payload.exp as number) - Date.now());
         
         // Set cookies
         res.cookie("__Secure-refreshToken", newRefreshToken, {httpOnly: true, secure: true, sameSite: "strict", maxAge: maxAge});
