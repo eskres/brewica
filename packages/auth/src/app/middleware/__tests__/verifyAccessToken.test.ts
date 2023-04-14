@@ -6,7 +6,7 @@ import { verifyAccessToken } from '../verifyAccessToken'
 import supertest from 'supertest';
 import { app } from '../../../main';
 
-describe('verify the validity of access token with verifyAccessToken.ts middleware', () => {
+describe.only('verify the validity of access token with verifyAccessToken.ts middleware', () => {
 
     let fingerprint: string;
     let sub: string;
@@ -107,6 +107,24 @@ describe('verify the validity of access token with verifyAccessToken.ts middlewa
             .auth(token, {type: 'bearer'})
             .set('Cookie', [`__Secure-accessFingerprint=${fingerprint}`])
             .expect(403);
+    });
+    test('send request with invalid token (expired) and receive 401', async () => {
+
+        const token = await new SignJWT({fingerprint: fingerprintHash})
+            .setSubject(sub)
+            .setProtectedHeader({alg: 'EdDSA'})
+            .setIssuedAt()
+            .setIssuer('https://auth.brewica.com')
+            .setAudience('https://www.brewica.com')
+            .setExpirationTime(Date.now() - 3600)
+            .setJti(randomUUID())
+            .sign(privateKey);
+
+        await supertest(app)
+            .get("/test")
+            .auth(token, {type: 'bearer'})
+            .set('Cookie', [`__Secure-accessFingerprint=${fingerprint}`])
+            .expect(401);
     });
 
     test('send request with valid token and receive 200', async () => {

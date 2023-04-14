@@ -23,6 +23,7 @@ export const verifyAccessToken = async (req: Request, res: Response, next: NextF
         issuer: 'https://auth.brewica.com',
         audience: 'https://www.brewica.com'
     }).then((jwt)=>{
+        if (jwt.payload['exp'] as number <= Date.now()) return res.sendStatus(401);
         const fingerprint = jwt.payload['fingerprint']        
         // Hash fingerprint
         const fingerprintHash: string = createHash('sha256').update(req.cookies['__Secure-accessFingerprint'] as string).digest('hex');
