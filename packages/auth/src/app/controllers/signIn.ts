@@ -27,7 +27,7 @@ export const signInPost = async (req: Request, res: Response) => {
             const accessSecret = await jose.importJWK(jwks.ACCESS_TOKEN_SECRET, 'EdDSA');
             const refreshSecret = await jose.importJWK(jwks.REFRESH_TOKEN_SECRET, 'EdDSA');
 
-            const accessToken = await createToken(accessFingerprint.hash,  user._id, '10m', accessSecret);
+            const accessToken = await createToken(accessFingerprint.hash,  user._id, Date.now() + 600_000, accessSecret);
             const refreshToken = await createToken(refreshFingerprint.hash, user._id, Date.now() + 3_600_000, refreshSecret);
 
             res.cookie("__Secure-refreshToken", refreshToken, {httpOnly: true, secure: true, sameSite: "strict", maxAge: 3_600_000});

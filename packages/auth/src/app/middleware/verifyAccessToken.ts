@@ -23,17 +23,21 @@ export const verifyAccessToken = async (req: Request, res: Response, next: NextF
         issuer: 'https://auth.brewica.com',
         audience: 'https://www.brewica.com'
     }).then((jwt)=>{
-        if (jwt.payload['exp'] as number <= Date.now()) return res.sendStatus(401);
         const fingerprint = jwt.payload['fingerprint']        
         // Hash fingerprint
         const fingerprintHash: string = createHash('sha256').update(req.cookies['__Secure-accessFingerprint'] as string).digest('hex');
         // Compare fingerprint hashes
         if(fingerprint as string !== fingerprintHash) return res.sendStatus(403);
+        // Check access token expiry is in the future
+        if (jwt.payload['exp'] as number <= Date.now()) return res.sendStatus(401);
+        // Add jwt to the request
+        req.body.jwt = jwt;
+
         return next();
     })
     .catch((err) => {
         console.log(err);
         return res.sendStatus(403);
     })
-    return next();
+    return;
 }
