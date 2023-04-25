@@ -1,4 +1,4 @@
-import type { Request, Response } from 'express'
+import type { Request, Response } from 'express';
 import { createHash } from 'crypto';
 import * as jose from 'jose';
 import * as jwks from '../../../jwks';

@@ -23,7 +23,7 @@ afterAll(async () => {
 });
 
 
-describe('User GET /auth/user', () => {
+describe.only('User GET /auth/user', () => {
     let savedUser: IUser;
     let signInResponse: supertest.Response;
     
@@ -83,11 +83,13 @@ describe('User GET /auth/user', () => {
 
         const token = await createToken(fingerprint.hash, sub as unknown as string, exp, privateKey);
 
-        await supertest(app)
+        const response = await supertest(app)
         .get('/auth/user')
         .auth(token, {type: 'bearer'})
         .set('Cookie', `${signInResponse.header['set-cookie'][0]}; __Secure-accessFingerprint=${fingerprint.value}; ${signInResponse.header['set-cookie'][2]}`)
         .expect(404);
+
+        expect(response.body.message).toEqual('User not found');
     });
 
     test('request with valid access token and fingerprint should return a user object', async () => {

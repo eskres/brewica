@@ -8,8 +8,8 @@ export const user = async (req: Request, res: Response) => {
         const user = await User.findById(id).orFail().exec();
         return res.status(200).json({user: user});
     } catch (err) {
-        if (err instanceof mongoose.Error.DocumentNotFoundError) return res.sendStatus(404);
+        if (err instanceof mongoose.Error.DocumentNotFoundError) return res.status(404).json({message: 'User not found'});
         console.log(err);
-        return res.sendStatus(500);
+        return res.status(500).json({message: 'Server error'});
     }
 }
