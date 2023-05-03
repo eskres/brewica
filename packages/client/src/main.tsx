@@ -1,12 +1,15 @@
 import { StrictMode } from 'react';
 import * as ReactDOM from 'react-dom/client';
-import Home from './app/Home/Home';
+import { RouterProvider } from "react-router-dom";
+import 'bootstrap';
+import router from './router';
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
 );
+
 root.render(
   <StrictMode>
-      <Home />
+    <RouterProvider router={router} />
   </StrictMode>
 );

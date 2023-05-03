@@ -11,8 +11,8 @@ export function NavBar() {
                     </button>              
                     <div className="collapse navbar-collapse justify-content-end" id="navbarToggler">
                         <div className="navbar-nav" role="navigation">
-                            <a className="nav-link mx-1" role="link" href="#">Sign Up</a>
-                            <a className="nav-link mx-1" role="link" href="#">Sign In</a>
+                            <a className="nav-link mx-1" role="link" href="/sign-up">Sign Up</a>
+                            <a className="nav-link mx-1" role="link" href="/sign-in">Sign In</a>
                         </div>
                     </div>
                 </div>

@@ -1,4 +1,3 @@
-import 'bootstrap';
 import NavBar from '../shared/NavBar/NavBar';
 
 export function Home() {
