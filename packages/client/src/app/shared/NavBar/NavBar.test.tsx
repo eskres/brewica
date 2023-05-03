@@ -1,10 +1,14 @@
 import { render, screen, fireEvent } from '@testing-library/react';
+import { BrowserRouter } from 'react-router-dom';
 import '@testing-library/jest-dom';
 import NavBar from './NavBar';
 
 describe('Navbar component', () => {
   it('should render a navbar with sign up and sign in links', () => {
-    render(<NavBar />);
+    render(
+    <BrowserRouter>
+      <NavBar />
+    </BrowserRouter>);
     const signUp = screen.getByRole('link', { name: 'Sign Up' });
     const signIn = screen.getByRole('link', { name: 'Sign In' });
 
@@ -13,7 +17,10 @@ describe('Navbar component', () => {
   });
 
   it('should navigate to the correct page on link click', () => {
-    render(<NavBar />);
+    render(
+      <BrowserRouter>
+        <NavBar />
+      </BrowserRouter>);
     const signUp = screen.getByRole('link', { name: 'Sign Up' });
     const signIn = screen.getByRole('link', { name: 'Sign In' });
 

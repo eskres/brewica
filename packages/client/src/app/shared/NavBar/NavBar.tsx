@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 export function NavBar() {
     return (
         <header className="sticky-top" role="banner">
@@ -11,8 +13,8 @@ export function NavBar() {
                     </button>              
                     <div className="collapse navbar-collapse justify-content-end" id="navbarToggler">
                         <div className="navbar-nav" role="navigation">
-                            <a className="nav-link mx-1" role="link" href="/sign-up">Sign Up</a>
-                            <a className="nav-link mx-1" role="link" href="/sign-in">Sign In</a>
+                            <Link to="sign-up" className="nav-link mx-1" role="link">Sign Up</Link>
+                            <Link to="sign-in" className="nav-link mx-1" role="link">Sign In</Link>
                         </div>
                     </div>
                 </div>
