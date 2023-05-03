@@ -10,7 +10,7 @@ describe('Home', () => {
 
         expect(home).toBeTruthy();
         expect(h1).toBeInTheDocument();
-        expect(h1.textContent).toEqual('A catchy tagline')
+        expect(h1.textContent).toEqual('Brewica')
 
     });
 });

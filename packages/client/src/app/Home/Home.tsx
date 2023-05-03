@@ -1,8 +1,9 @@
-import React from "react";
+import 'bootstrap';
+import NavBar from '../shared/NavBar/NavBar';
 
 export function Home() {
-    return (
-        <h1>Hello world!</h1>
+    return (           
+        <NavBar />
     );
 }
   
