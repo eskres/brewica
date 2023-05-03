@@ -13,10 +13,10 @@ describe('Sign Up', () => {
         );
 
         const username = screen.getByLabelText('Username');
-        const email = screen.getAllByLabelText('Email');
-        const password = screen.getAllByLabelText('Password');
-        const passwordConfirm = screen.getAllByLabelText('Confirm password');
-        const submit = screen.getByRole('button', {name: 'submit'});
+        const email = screen.getByLabelText('Email address');
+        const password = screen.getByLabelText('Password');
+        const passwordConfirm = screen.getByLabelText('Confirm password');
+        const submit = screen.getByRole('button', {name: 'Submit'});
 
         expect(signUp).toBeTruthy();
         expect(username).toBeInTheDocument();

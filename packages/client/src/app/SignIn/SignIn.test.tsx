@@ -13,9 +13,9 @@ describe('Sign In', () => {
         );
 
 
-        const email = screen.getAllByLabelText('Email');
-        const password = screen.getAllByLabelText('Password');
-        const submit = screen.getByRole('button', {name: 'submit'});
+        const email = screen.getByLabelText('Email');
+        const password = screen.getByLabelText('Password');
+        const submit = screen.getByRole('button', {name: 'Submit'});
 
         expect(signIn).toBeTruthy();
         expect(email).toBeInTheDocument();
