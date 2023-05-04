@@ -1,33 +1,43 @@
 import { render, screen, fireEvent } from '@testing-library/react';
-import { BrowserRouter } from 'react-router-dom';
 import '@testing-library/jest-dom';
 import NavBar from './NavBar';
 
 describe('Navbar component', () => {
   it('should render a navbar with sign up and sign in links', () => {
-    render(
-    <BrowserRouter>
-      <NavBar />
-    </BrowserRouter>);
-    const signUp = screen.getByRole('link', { name: 'Sign Up' });
-    const signIn = screen.getByRole('link', { name: 'Sign In' });
+    render(<NavBar />);
+    
+    const signUp = screen.getByRole('button', { name: 'Sign Up' });
+    const signIn = screen.getByRole('button', { name: 'Sign In' });
 
     expect(signUp).toBeInTheDocument();
     expect(signIn).toBeInTheDocument();
   });
 
-  it('should navigate to the correct page on link click', () => {
-    render(
-      <BrowserRouter>
-        <NavBar />
-      </BrowserRouter>);
-    const signUp = screen.getByRole('link', { name: 'Sign Up' });
-    const signIn = screen.getByRole('link', { name: 'Sign In' });
+  it('should open the sign up modal', () => {
+    render(<NavBar />);
+
+    const signUp = screen.getByRole('button', { name: 'Sign Up' });
 
     fireEvent.click(signUp);
-    expect(window.location.pathname).toBe('/sign-up');
+
+    const modal = screen.getByRole('dialog');
+    const heading = screen.getByRole('heading', {level: 5});
+
+    expect(modal).toHaveClass('modal');
+    expect(heading).toBe('Sign up')
+  });
+
+  it('should open the sign in modal', () => {
+    render(<NavBar />);
+
+    const signIn = screen.getByRole('button', { name: 'Sign In' });
 
     fireEvent.click(signIn);
-    expect(window.location.pathname).toBe('/sign-in');
+
+    const modal = screen.getByRole('dialog');
+    const heading = screen.getByRole('heading', {level: 5});
+
+    expect(modal).toHaveClass('modal');
+    expect(heading).toBe('Sign in')
   });
 });

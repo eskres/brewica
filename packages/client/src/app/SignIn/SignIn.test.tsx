@@ -1,23 +1,17 @@
 import { render, screen } from '@testing-library/react';
-import { BrowserRouter } from 'react-router-dom';
 import '@testing-library/jest-dom';
 import SignIn from './SignIn';
 
 describe('Sign In', () => {
     it('renders sign in form', () => {
-        
-        const signIn = render(
-            <BrowserRouter>
-                <SignIn/>
-            </BrowserRouter>
-        );
+        render(<SignIn />);
 
-
+        const modal = screen.getByRole('dialog');
         const email = screen.getByLabelText('Email');
         const password = screen.getByLabelText('Password');
         const submit = screen.getByRole('button', {name: 'Submit'});
 
-        expect(signIn).toBeTruthy();
+        expect(modal).toHaveClass('modal');
         expect(email).toBeInTheDocument();
         expect(password).toBeInTheDocument();
         expect(submit).toBeInTheDocument();
