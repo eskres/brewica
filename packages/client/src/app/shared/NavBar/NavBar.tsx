@@ -1,7 +1,4 @@
-import SignUpButton from "./SignUpButton";
-import SignInButton from "./SignInButton";
-
-export function NavBar() {
+export default function NavBar() {
     return (
         <header className="sticky-top" role="banner">
             <nav className="navbar navbar-expand-md" role="navigation">
@@ -14,8 +11,12 @@ export function NavBar() {
                     </button>              
                     <div className="collapse navbar-collapse justify-content-end" id="navbarToggler">
                         <div className="navbar-nav" role="navigation">
-                            <SignUpButton />
-                            <SignInButton />
+                            <button type="button" className="nav-link" data-bs-toggle="modal" data-bs-target="#signUp">
+                                Sign up
+                            </button>
+                            <button type="button" className="nav-link" data-bs-toggle="modal" data-bs-target="#signIn">
+                                Sign in
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -23,5 +24,3 @@ export function NavBar() {
         </header>
     );
 }
-  
-export default NavBar;
