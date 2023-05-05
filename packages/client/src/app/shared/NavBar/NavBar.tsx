@@ -1,4 +1,5 @@
-import { Link } from "react-router-dom";
+import SignUpButton from "./SignUpButton";
+import SignInButton from "./SignInButton";
 
 export function NavBar() {
     return (
@@ -13,8 +14,8 @@ export function NavBar() {
                     </button>              
                     <div className="collapse navbar-collapse justify-content-end" id="navbarToggler">
                         <div className="navbar-nav" role="navigation">
-                            <Link to="sign-up" className="nav-link mx-1" role="link">Sign Up</Link>
-                            <Link to="sign-in" className="nav-link mx-1" role="link">Sign In</Link>
+                            <SignUpButton />
+                            <SignInButton />
                         </div>
                     </div>
                 </div>
