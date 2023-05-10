@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import SignIn from './SignIn';
-// import handleSignIn from './handleSignIn'
+import axios from 'axios';
 
 describe('Sign In', () => {
     it('renders sign in form', () => {
@@ -20,9 +20,11 @@ describe('Sign In', () => {
         expect(cancel).toBeInTheDocument();
     });
 
-    it('submit sign in form', () => {
-        const onSubmit = vi.fn();
-        render(<SignIn handleSignIn={onSubmit}/>);
+    it('submit sign in form and have request rejected', () => {
+        vi.mock('axios')
+        axios.post = vi.fn().mockRejectedValue('request rejected')
+        
+        render(<SignIn />);
 
         const modal = screen.getByLabelText('Sign in');
         const email = screen.getByLabelText('Email address');
@@ -35,7 +37,10 @@ describe('Sign In', () => {
         expect(password).toBeInTheDocument();
         expect(submit).toBeInTheDocument();
         expect(cancel).toBeInTheDocument();
+
         fireEvent.click(submit);
-        expect(onSubmit).toHaveBeenCalledTimes(1);
+
+        expect(axios.post).toHaveBeenCalledTimes(1);
+        expect(axios.post).rejects.toEqual('request rejected');
     });
 });
