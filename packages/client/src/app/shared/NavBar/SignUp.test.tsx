@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import SignUp from './SignUp';
 
@@ -21,5 +21,27 @@ describe('Sign Up', () => {
         expect(passwordConfirm).toBeInTheDocument();
         expect(submit).toBeInTheDocument();
         expect(cancel).toBeInTheDocument();
+    });
+    it('submit sign up form', () => {
+        const onSubmit = vi.fn();
+        render(<SignUp handleSignUp={onSubmit}/>);
+
+        const modal = screen.getByLabelText('Sign up');
+        const username = screen.getByLabelText('Username');
+        const email = screen.getByLabelText('Email address');
+        const password = screen.getByLabelText('Password');
+        const passwordConfirm = screen.getByLabelText('Confirm password');
+        const submit = screen.getByLabelText('Submit');
+        const cancel = screen.getByLabelText('Cancel');
+
+        expect(modal).toHaveClass('modal');
+        expect(username).toBeInTheDocument();
+        expect(email).toBeInTheDocument();
+        expect(password).toBeInTheDocument();
+        expect(passwordConfirm).toBeInTheDocument();
+        expect(submit).toBeInTheDocument();
+        expect(cancel).toBeInTheDocument();
+        fireEvent.click(submit);
+        expect(onSubmit).toHaveBeenCalledTimes(1);
     });
 });
