@@ -45,19 +45,19 @@ if (process.env['NODE_ENV'] !== 'test' && process.env['MONGODB']) {
   mongoose.connect(process.env['MONGODB']);
 }
 
-// ERROR HANDLER
-app.use((error: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  console.log('ACTION');
-  console.log(error);
+// // ERROR HANDLER
+// app.use((error: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
+//   console.log('ACTION');
+//   console.log(error);
   
   
-  if (!error.statusCode) error.statusCode = 500;
+//   if (!error.statusCode) error.statusCode = 500;
 
-  if (error.statusCode === 301) {
-    return res.status(301).redirect('/not-found');
-  }
+//   if (error.statusCode === 301) {
+//     return res.status(301).redirect('/not-found');
+//   }
 
-  return res
-    .status(error.statusCode)
-    .json({ error: error.toString() });
-});
+//   return res
+//     .status(error.statusCode)
+//     .json({ error: error.toString() });
+// });
