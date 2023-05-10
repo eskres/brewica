@@ -1,3 +1,5 @@
+import { type FormEventHandler } from "react";
+
 export interface IUser {
     _id?: string;
     username: string;
@@ -12,4 +14,9 @@ export interface IUser {
 export interface ISignIn {
     emailAddress: string;
     password: string;
+}
+
+export type Props = {
+    handleSignIn?: FormEventHandler
+    handleSignUp?: FormEventHandler
 }
