@@ -1,16 +1,32 @@
-import { Props } from '../../../../../types';
+import axios from "axios";
 
-export default function SignUp(props: Props) {
+export default function SignUp() {
+
+  const handleSignUp = (e: React.FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+      axios.post('/auth/signup', {
+          username: 'test123',
+          emailAddress: 'test@test.com',
+          password: 'password',
+          passwordConf: 'password'
+      })
+      .then((res) => {
+          console.log(res);
+      })
+      .catch((error) => {
+          alert(error.message);
+      })
+  }
+
   return (
     <div className="modal fade" id="signUp" data-bs-backdrop="static" data-bs-keyboard="false" tabIndex={1} aria-labelledby="modalTitle" aria-hidden="true">
       <div className="modal-dialog modal-dialog-centered">
-        <form className="modal-content" onSubmit={props.handleSignUp}>
+        <form className="modal-content" onSubmit={handleSignUp}>
           <div className="modal-header">
             <h1 className="modal-title fs-5" id="modalTitle">Sign up</h1>
             <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div className="modal-body">
-            <form className="container mb-3">
               <div className="form-floating mb-3">
                 <input type="email" className="form-control" id="username" placeholder="name@example.com"/>
                 <label htmlFor="username">Username</label>
@@ -27,7 +43,6 @@ export default function SignUp(props: Props) {
                 <input type="password" className="form-control" id="confirmPassword" placeholder="Password"/>
                 <label htmlFor="confirmPassword">Confirm password</label>
               </div>
-            </form>
           </div>
           <div className="modal-footer">
             <button type="button" className="btn btn-secondary" data-bs-dismiss="modal" aria-label="Cancel">Cancel</button>
