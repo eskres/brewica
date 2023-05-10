@@ -2,7 +2,7 @@ import type { Request, Response } from 'express'
 import { redisClient } from '../../utils/redis';
 import { createFingerprint } from '../../utils/createFingerprint';
 import * as jose from 'jose';
-import * as jwks from '../../../jwks';
+import * as jwks from '../../jwks';
 import { createToken } from '../../utils/createToken'
 import { createHash } from 'crypto';
 

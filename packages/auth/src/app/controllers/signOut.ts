@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
 import { createHash } from 'crypto';
 import * as jose from 'jose';
-import * as jwks from '../../../jwks';
+import * as jwks from '../../jwks';
 import { redisClient } from '../../utils/redis';
 
 export const signOut = async (req: Request, res: Response) => {

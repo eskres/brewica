@@ -1,7 +1,7 @@
 import { faker } from "@faker-js/faker";
 import { KeyLike, importJWK, SignJWT, generateKeyPair } from "jose";
 import { randomUUID, createHash } from "crypto";
-import { ACCESS_TOKEN_SECRET } from '../../../../jwks'
+import { ACCESS_TOKEN_SECRET } from '../../../jwks'
 import { verifyAccessToken } from '../verifyAccessToken'
 import supertest from 'supertest';
 import { app } from '../../../main';

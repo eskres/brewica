@@ -6,7 +6,7 @@ import User from '../../models/User';
 import { app } from '../../../main';
 import { createToken } from '../../../utils/createToken';
 import { createFingerprint } from '../../../utils/createFingerprint';
-import {ACCESS_TOKEN_SECRET} from '../../../../jwks';
+import {ACCESS_TOKEN_SECRET} from '../../../jwks';
 import { importJWK, type KeyLike } from 'jose';
 import mongoose from 'mongoose';
 

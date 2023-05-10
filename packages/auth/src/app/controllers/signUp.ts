@@ -89,6 +89,6 @@ export const signUpPost = async (req: Request, res: Response, next: NextFunction
     // Catch unhandled errors
     } catch(err: unknown) {
         // How best to handle errors here???
-        next(err);
+        return next(err);
     }
 }

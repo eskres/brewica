@@ -15,8 +15,8 @@
     "noImplicitReturns": true,
     "noPropertyAccessFromIndexSignature": true,
     "noUncheckedIndexedAccess": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
+    "noUnusedLocals": false, //Check what I want this to be set to
+    "noUnusedParameters": false, //Check this too...
 
     "verbatimModuleSyntax": true,
     "checkJs": true,

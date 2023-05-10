@@ -7,7 +7,7 @@ import User from '../../models/User';
 import type { IUser, ISignIn } from '../../../../../types';
 import * as jose from 'jose';
 import * as setCookie from 'set-cookie-parser'
-import * as jwks from '../../../../jwks'
+import * as jwks from '../../../jwks'
 import { redisClient } from '../../../utils/redis';
 import { createHash } from 'crypto';
 import { createToken } from '../../../utils/createToken';

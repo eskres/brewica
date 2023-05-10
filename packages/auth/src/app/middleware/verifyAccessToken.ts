@@ -1,6 +1,6 @@
 import type { Request, Response, NextFunction } from "express";
 import { importJWK, jwtVerify } from "jose";
-import { ACCESS_TOKEN_PUBLIC } from '../../../jwks'
+import { ACCESS_TOKEN_PUBLIC } from '../../jwks'
 import { createHash } from 'crypto';
 
 export const verifyAccessToken = async (req: Request, res: Response, next: NextFunction) => {

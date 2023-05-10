@@ -2,7 +2,7 @@ import type { Request, Response } from 'express'
 import User from '../models/User';
 import * as argon2 from "argon2";
 import * as jose from 'jose';
-import * as jwks from '../../../jwks';
+import * as jwks from '../../jwks';
 import { createToken } from '../../utils/createToken'
 import { createFingerprint } from '../../utils/createFingerprint';
 

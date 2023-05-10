@@ -1,7 +1,7 @@
 import { faker } from "@faker-js/faker";
 import { createToken } from "../createToken";
 import { KeyLike, importJWK, jwtVerify } from "jose";
-import { REFRESH_TOKEN_SECRET, REFRESH_TOKEN_PUBLIC } from '../../../jwks'
+import { REFRESH_TOKEN_SECRET, REFRESH_TOKEN_PUBLIC } from '../../jwks'
 
 describe('create JSON Web Tokens', () => {
     test('make sure JWT is created with correct parameters', async () => {
