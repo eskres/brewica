@@ -1,32 +1,18 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import SignUp from './SignUp';
 import axios from 'axios';
+import { Mocked } from 'vitest';
 
 describe('Sign Up', () => {
-    it('renders sign up form', () => {
-        render(<SignUp />);
+    test('render sign up form, populate form and check onSubmit post request', async () => {
+        const user = userEvent.setup();
 
-        const modal = screen.getByLabelText('Sign up');
-        const username = screen.getByLabelText('Username');
-        const email = screen.getByLabelText('Email address');
-        const password = screen.getByLabelText('Password');
-        const passwordConfirm = screen.getByLabelText('Confirm password');
-        const submit = screen.getByLabelText('Submit');
-        const cancel = screen.getByLabelText('Cancel');
-
-        expect(modal).toHaveClass('modal');
-        expect(username).toBeInTheDocument();
-        expect(email).toBeInTheDocument();
-        expect(password).toBeInTheDocument();
-        expect(passwordConfirm).toBeInTheDocument();
-        expect(submit).toBeInTheDocument();
-        expect(cancel).toBeInTheDocument();
-    });
-    it('submit sign up form and have request rejected', () => {
-        vi.mock('axios')
-        axios.post = vi.fn().mockRejectedValue('request rejected')
+        vi.mock('axios');
+        const mockedAxios = axios as Mocked<typeof axios>;
+        mockedAxios.post.mockResolvedValueOnce('pass');
+        mockedAxios.post.mockRejectedValueOnce('fail');
 
         render(<SignUp />);
 
@@ -46,19 +32,24 @@ describe('Sign Up', () => {
         expect(submit).toBeInTheDocument();
         expect(cancel).toBeInTheDocument();
 
-        userEvent.type(username, 'test123');
-        userEvent.type(email, 'test@test.com');
-        userEvent.type(password, 'password');
-        userEvent.type(passwordConfirm, 'password');
+        await user.type(username, 'test123');
+        await user.type(email, 'test@test.com');
+        await user.type(password, 'password');
+        await user.type(passwordConfirm, 'password');
         
-        expect(username.value).toEqual('test@test.com')
-        expect(email.value).toEqual('test@test.com')
-        expect(password.value).toEqual('password')
-        expect(passwordConfirm.value).toEqual('password')
+        expect(username.value).toEqual('test123');
+        expect(email.value).toEqual('test@test.com');
+        expect(password.value).toEqual('password');
+        expect(passwordConfirm.value).toEqual('password');
 
         fireEvent.click(submit);
 
-        expect(axios.post).toHaveBeenCalledTimes(1);
-        expect(axios.post).rejects.toEqual('request rejected');
-    });
+        expect(mockedAxios.post).toHaveBeenCalledTimes(1);
+        expect(mockedAxios.post).toHaveBeenCalledWith('/auth/signup', {
+            username: 'test123',
+            emailAddress: 'test@test.com',
+            password: 'password',
+            passwordConf: 'password'
+        });
+    },);
 });

@@ -3,28 +3,17 @@ import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import SignIn from './SignIn';
 import axios from 'axios';
+import { Mocked, vi } from 'vitest';
 
-describe('Sign In', () => {
-    it('renders sign in form', () => {
-        render(<SignIn />);
+describe ('Sign In', () => {
+    test('render sign in form, populate form and check onSubmit post request', async () => {
+        const user = userEvent.setup();
 
-        const modal = screen.getByLabelText('Sign in');
-        const email = screen.getByLabelText('Email address');
-        const password = screen.getByLabelText('Password');
-        const submit = screen.getByLabelText('Submit');
-        const cancel = screen.getByLabelText('Cancel');
+        vi.mock('axios');
+        const mockedAxios = axios as Mocked<typeof axios>;
+        mockedAxios.post.mockResolvedValueOnce('pass');
+        mockedAxios.post.mockRejectedValueOnce('fail');
 
-        expect(modal).toHaveClass('modal');
-        expect(email).toBeInTheDocument();
-        expect(password).toBeInTheDocument();
-        expect(submit).toBeInTheDocument();
-        expect(cancel).toBeInTheDocument();
-    });
-
-    it('submit sign in form and have request rejected', () => {
-        vi.mock('axios')
-        axios.post = vi.fn().mockRejectedValue('request rejected')
-        
         render(<SignIn />);
 
         const modal = screen.getByLabelText('Sign in');
@@ -39,15 +28,18 @@ describe('Sign In', () => {
         expect(submit).toBeInTheDocument();
         expect(cancel).toBeInTheDocument();
 
-        userEvent.type(email, 'test@test.com');
-        userEvent.type(password, 'password');
-        
-        expect(email.value).toEqual('test@test.com')
-        expect(password.value).toEqual('password')
+        await user.type(email, 'test@test.com');
+        await user.type(password, 'password');
+
+        expect(email.value).toEqual('test@test.com');
+        expect(password.value).toEqual('password');
 
         fireEvent.click(submit);
 
-        expect(axios.post).toHaveBeenCalledTimes(1);
-        expect(axios.post).rejects.toEqual('request rejected');
+        expect(mockedAxios.post).toHaveBeenCalledTimes(1);
+        expect(mockedAxios.post).toHaveBeenCalledWith('/auth/signin', {
+            emailAddress: 'test@test.com',
+            password: 'password'
+        });
     });
 });
