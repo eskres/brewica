@@ -1,13 +1,21 @@
 import axios from "axios";
+import { useState } from 'react';
 
 export default function SignIn() {
+  const [inputs, setInputs] = useState({
+    emailAddress: "",
+    password: ""
+  });
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const name = e.target.name;
+    const value = e.target.value;
+    setInputs(values => ({...values, [name]: value}))
+  }
 
   const handleSignIn = (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
-      axios.post('/auth/signin', {
-          emailAddress: 'test@test.com',
-          password: 'password'
-      })
+      axios.post('/auth/signin', inputs)
       .then((res) => {
           console.log(res);
       })
@@ -17,7 +25,7 @@ export default function SignIn() {
   }
 
   return (
-    <div className="modal fade" id="signIn" data-bs-backdrop="static" data-bs-keyboard="false" tabIndex={1} aria-labelledby="modalTitle" aria-hidden="true" role="dialog">
+    <div className="modal fade" id="signIn" data-bs-backdrop="static" data-bs-keyboard="false" tabIndex={-1} aria-labelledby="modalTitle" aria-hidden="true" role="dialog">
       <div className="modal-dialog modal-dialog-centered">
         <form className="modal-content" onSubmit={handleSignIn}>
           <div className="modal-header">
@@ -26,11 +34,11 @@ export default function SignIn() {
           </div>
           <div className="modal-body">
               <div className="form-floating mb-3">
-                <input type="email" className="form-control" id="email" placeholder="name@example.com"/>
+                <input type="email" className="form-control" id="email" placeholder="name@example.com" name="emailAddress" value={inputs.emailAddress} onChange={handleChange}/>
                 <label htmlFor="email">Email address</label>
               </div>
               <div className="form-floating mb-3">
-                <input type="password" className="form-control" id="password" placeholder="Password"/>
+                <input type="password" className="form-control" id="password" placeholder="Password" name="password" value={inputs.password} onChange={handleChange}/>
                 <label htmlFor="password">Password</label>
               </div>
           </div>

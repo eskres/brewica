@@ -1,15 +1,23 @@
 import axios from "axios";
+import { useState } from "react";
 
 export default function SignUp() {
+  const [inputs, setInputs] = useState({
+    username: "",
+    emailAddress: "",
+    password: "",
+    passwordConf: ""
+  });
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const name = e.target.name;
+    const value = e.target.value;
+    setInputs(values => ({...values, [name]: value}))
+  }
 
   const handleSignUp = (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
-      axios.post('/auth/signup', {
-          username: 'test123',
-          emailAddress: 'test@test.com',
-          password: 'password',
-          passwordConf: 'password'
-      })
+      axios.post('/auth/signup', inputs)
       .then((res) => {
           console.log(res);
       })
@@ -19,7 +27,7 @@ export default function SignUp() {
   }
 
   return (
-    <div className="modal fade" id="signUp" data-bs-backdrop="static" data-bs-keyboard="false" tabIndex={1} aria-labelledby="modalTitle" aria-hidden="true">
+    <div className="modal fade" id="signUp" data-bs-backdrop="static" data-bs-keyboard="false" tabIndex={-1} aria-labelledby="modalTitle" aria-hidden="true">
       <div className="modal-dialog modal-dialog-centered">
         <form className="modal-content" onSubmit={handleSignUp}>
           <div className="modal-header">
@@ -28,19 +36,19 @@ export default function SignUp() {
           </div>
           <div className="modal-body">
               <div className="form-floating mb-3">
-                <input type="email" className="form-control" id="username" placeholder="name@example.com"/>
+                <input type="text" className="form-control" id="username" placeholder="name@example.com" name="username" value={inputs.username} onChange={handleChange}/>
                 <label htmlFor="username">Username</label>
               </div>
               <div className="form-floating mb-3">
-                <input type="email" className="form-control" id="email" placeholder="name@example.com"/>
+                <input type="email" className="form-control" id="email" placeholder="name@example.com" name="emailAddress" value={inputs.emailAddress} onChange={handleChange}/>
                 <label htmlFor="email">Email address</label>
               </div>
               <div className="form-floating mb-3">
-                <input type="password" className="form-control" id="password" placeholder="Password"/>
+                <input type="password" className="form-control" id="password" placeholder="Password" name="password" value={inputs.password} onChange={handleChange}/>
                 <label htmlFor="password">Password</label>
               </div>
               <div className="form-floating mb-3">
-                <input type="password" className="form-control" id="confirmPassword" placeholder="Password"/>
+                <input type="password" className="form-control" id="confirmPassword" placeholder="Password" name="passwordConf" value={inputs.passwordConf} onChange={handleChange}/>
                 <label htmlFor="confirmPassword">Confirm password</label>
               </div>
           </div>
