@@ -42,4 +42,24 @@ describe ('Sign In', () => {
             password: 'password'
         });
     });
+
+    test('check input validation on email field', async () => {
+        const user = userEvent.setup();
+        render(<SignIn />);
+
+        const modal = screen.getByLabelText('Sign in');
+        const email: HTMLInputElement = screen.getByLabelText('Email address');
+        const password: HTMLInputElement = screen.getByLabelText('Password');
+        
+        expect(modal).toHaveClass('modal');
+        expect(email).toBeInTheDocument();
+        expect(password).toBeInTheDocument();
+
+        await user.type(email, 'not_an_email');
+        await user.click(password);
+
+        expect(screen.getByRole('alert')).toBeInTheDocument();
+        expect(screen.getByRole('alert')).toHaveValue('Invalid email address');
+    })
+    
 });
