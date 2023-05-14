@@ -58,8 +58,8 @@ describe ('Sign In', () => {
         await user.type(email, 'not_an_email');
         await user.click(password);
 
-        expect(screen.getByRole('alert')).toBeInTheDocument();
-        expect(screen.getByRole('alert')).toHaveValue('Invalid email address');
+        const alert = screen.getByLabelText('Email error');
+        expect(alert).toBeInTheDocument();
+        expect(alert.textContent).toEqual('Not a valid email address');
     })
-    
 });

@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import SignUp from './SignUp';
@@ -51,5 +51,81 @@ describe('Sign Up', () => {
             password: 'password',
             passwordConf: 'password'
         });
-    },);
+    });
+
+    test('check input validation on username field', async () => {
+        const user = userEvent.setup();
+        render(<SignUp />);
+
+        const modal = screen.getByLabelText('Sign in');
+        const username: HTMLInputElement = screen.getByLabelText('Username');
+        
+        expect(modal).toHaveClass('modal');
+        expect(username).toBeInTheDocument();
+
+        await user.type(username, 'Invalid%<>`');
+        await user.tab();
+
+        const alert = screen.getByLabelText('Username error');
+        expect(alert).toBeInTheDocument();
+        expect(alert.textContent).toEqual('Usernames must be no longer than 28 characters and are not case sensitive. Only letters, numbers, dashes and underscores are permitted');
+    });
+
+    test('check input validation on email field', async () => {
+        const user = userEvent.setup();
+        render(<SignUp />);
+
+        const modal = screen.getByLabelText('Sign in');
+        const email: HTMLInputElement = screen.getByLabelText('Email address');
+        
+        expect(modal).toHaveClass('modal');
+        expect(email).toBeInTheDocument();
+
+        await user.type(email, 'not_an_email');
+        await user.tab();
+
+        const alert = screen.getByLabelText('Email error');
+        expect(alert).toBeInTheDocument();
+        expect(alert.textContent).toEqual('Not a valid email address');
+    });
+
+    test('check input validation on password field', async () => {
+        const user = userEvent.setup();
+        render(<SignUp />);
+
+        const modal = screen.getByLabelText('Sign in');
+        const password: HTMLInputElement = screen.getByLabelText('Password');
+        
+        expect(modal).toHaveClass('modal');
+        expect(password).toBeInTheDocument();
+
+        await user.type(password, 'short');
+        await user.tab();
+
+        const alert = screen.getByLabelText('Password error');
+        expect(alert).toBeInTheDocument();
+        expect(alert.textContent).toEqual('Password requires 8 or more characters with a mix of letters, numbers & symbols');
+    });
+
+    test('check input validation on confirm password field', async () => {
+        const user = userEvent.setup();
+        render(<SignUp />);
+
+        const modal = screen.getByLabelText('Sign in');
+        const password: HTMLInputElement = screen.getByLabelText('Password');
+        const confirmPassword: HTMLInputElement = screen.getByLabelText('Confirm password');
+        
+        expect(modal).toHaveClass('modal');
+        expect(password).toBeInTheDocument();
+        expect(confirmPassword).toBeInTheDocument();
+
+        await user.type(password, 'matching');
+        await user.tab();
+        await user.type(confirmPassword, 'non_matching');
+        await user.tab();
+
+        const alert = screen.getByLabelText('Password confirmation error');
+        expect(alert).toBeInTheDocument();
+        expect(alert.textContent).toEqual('Passwords do not match');
+    });
 });
