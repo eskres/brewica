@@ -34,13 +34,13 @@ describe('Sign Up', () => {
 
         await user.type(username, 'test123');
         await user.type(email, 'test@test.com');
-        await user.type(password, 'password');
-        await user.type(passwordConfirm, 'password');
+        await user.type(password, 'password123!');
+        await user.type(passwordConfirm, 'password123!');
         
         expect(username.value).toEqual('test123');
         expect(email.value).toEqual('test@test.com');
-        expect(password.value).toEqual('password');
-        expect(passwordConfirm.value).toEqual('password');
+        expect(password.value).toEqual('password123!');
+        expect(passwordConfirm.value).toEqual('password123!');
 
         fireEvent.click(submit);
 
@@ -48,8 +48,8 @@ describe('Sign Up', () => {
         expect(mockedAxios.post).toHaveBeenCalledWith('/auth/signup', {
             username: 'test123',
             emailAddress: 'test@test.com',
-            password: 'password',
-            passwordConf: 'password'
+            password: 'password123!',
+            passwordConf: 'password123!'
         });
     });
 
@@ -57,7 +57,7 @@ describe('Sign Up', () => {
         const user = userEvent.setup();
         render(<SignUp />);
 
-        const modal = screen.getByLabelText('Sign in');
+        const modal = screen.getByLabelText('Sign up');
         const username: HTMLInputElement = screen.getByLabelText('Username');
         
         expect(modal).toHaveClass('modal');
@@ -75,7 +75,7 @@ describe('Sign Up', () => {
         const user = userEvent.setup();
         render(<SignUp />);
 
-        const modal = screen.getByLabelText('Sign in');
+        const modal = screen.getByLabelText('Sign up');
         const email: HTMLInputElement = screen.getByLabelText('Email address');
         
         expect(modal).toHaveClass('modal');
@@ -93,7 +93,7 @@ describe('Sign Up', () => {
         const user = userEvent.setup();
         render(<SignUp />);
 
-        const modal = screen.getByLabelText('Sign in');
+        const modal = screen.getByLabelText('Sign up');
         const password: HTMLInputElement = screen.getByLabelText('Password');
         
         expect(modal).toHaveClass('modal');
@@ -111,7 +111,7 @@ describe('Sign Up', () => {
         const user = userEvent.setup();
         render(<SignUp />);
 
-        const modal = screen.getByLabelText('Sign in');
+        const modal = screen.getByLabelText('Sign up');
         const password: HTMLInputElement = screen.getByLabelText('Password');
         const confirmPassword: HTMLInputElement = screen.getByLabelText('Confirm password');
         

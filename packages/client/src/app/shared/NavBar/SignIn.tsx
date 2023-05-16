@@ -7,21 +7,44 @@ export default function SignIn() {
     password: ""
   });
 
+  const [valid, setValid] = useState({
+    email: false,
+    feedback: ""
+  });
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const name = e.target.name;
     const value = e.target.value;
     setInputs(values => ({...values, [name]: value}))
   }
-
+  
   const handleSignIn = (e: React.FormEvent<HTMLFormElement>) => {
-      e.preventDefault();
+    e.preventDefault();
+    if (valid.email) {
       axios.post('/auth/signin', inputs)
       .then((res) => {
-          console.log(res);
+        console.log(res);
       })
       .catch((error) => {
-          alert(error.message);
-      })
+        alert(error.message);
+      }) 
+    }
+  }
+
+  function validateEmail(e: React.FocusEvent<HTMLInputElement>) {
+    e.target.classList.contains('is-valid') && e.target.classList.remove('is-valid');
+    e.target.classList.contains('is-invalid') && e.target.classList.remove('is-invalid');
+    // Using the contraint validation api to check for a valid email
+    if (e.target.checkValidity() && e.target.value !== ""){
+      e.target.classList.add('is-valid');
+      setValid({email: true, feedback: ""});
+    } else if (e.target.value === "") {
+      e.target.classList.add('is-invalid');
+      setValid({email: false, feedback: "Please enter an email address to continue"});
+    } else {
+      e.target.classList.add('is-invalid');
+      setValid({email: false, feedback: "Not a valid email address"});
+    }
   }
 
   return (
@@ -34,8 +57,9 @@ export default function SignIn() {
           </div>
           <div className="modal-body">
               <div className="form-floating mb-3">
-                <input type="email" className="form-control" id="email" placeholder="name@example.com" name="emailAddress" value={inputs.emailAddress} onChange={handleChange}/>
+                <input type="email" className="form-control" id="email" placeholder="name@example.com" name="emailAddress" value={inputs.emailAddress} onChange={handleChange} onBlur={validateEmail}/>
                 <label htmlFor="email">Email address</label>
+                {valid.feedback !== "" && <div className="invalid-feedback" role="alert" aria-label="Email error">{valid.feedback}</div>}
               </div>
               <div className="form-floating mb-3">
                 <input type="password" className="form-control" id="password" placeholder="Password" name="password" value={inputs.password} onChange={handleChange}/>
@@ -49,5 +73,5 @@ export default function SignIn() {
         </form>
       </div>
     </div>
-  )
+  );
 }
