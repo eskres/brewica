@@ -13,3 +13,14 @@ export const user = async (req: Request, res: Response) => {
         return res.status(500).json({message: 'Server error'});
     }
 }
+
+export const exists = async (req: Request, res: Response) => {    
+    const username: string = req.body.username
+    try {
+        const exists = await User.findOne({username: username}).exec();
+        return exists ? res.status(200).json({exists: true}) : res.status(200).json({exists: false});
+    } catch (err) {
+        console.log(err);
+        return res.status(500).json({Error: 'Internal server error'});
+    }
+}
