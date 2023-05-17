@@ -23,7 +23,7 @@ afterAll(async () => {
 });
 
 
-describe.only('User GET /auth/user', () => {
+describe.only('User GET /auth/user and User GET /auth/user/exists', () => {
     let savedUser: IUser;
     let signInResponse: supertest.Response;
     
@@ -100,5 +100,25 @@ describe.only('User GET /auth/user', () => {
         .expect(200);
         
         expect(response.body.user).toBeDefined();
-    })
+    });
+
+    test('request with pre existing username should return true', async () => {
+        const response = await supertest(app)
+        .get('/auth/user/exists')
+        .send({username: savedUser.username})
+        .expect(200);
+        
+        expect(response.body.exists).toBeDefined();
+        expect(response.body.exists).toEqual(true);
+    });
+
+    test('request with new username should return false', async () => {
+        const response = await supertest(app)
+        .get('/auth/user/exists')
+        .send({username: faker.internet.userName()})
+        .expect(200);
+        
+        expect(response.body.exists).toBeDefined();
+        expect(response.body.exists).toEqual(false);
+    });
 })
