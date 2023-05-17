@@ -1,6 +1,7 @@
 import axios from "axios";
 import { useState, useReducer } from "react";
 import * as type from "./signUpTypes";
+import PasswordStrength from "./PasswordStrength";
 
 // Reducer dispatch
 const reducer = (state:type.State, action: type.Action): type.State => {
@@ -51,7 +52,7 @@ const passwordFeedback: type.Feedback = {
 };
 
 export default function SignUp() {
-  
+
   const [state, dispatch] = useReducer(reducer, initialState);
   const [inputs, setInputs] = useState({
     username: "",
@@ -59,6 +60,7 @@ export default function SignUp() {
     password: "",
     passwordConf: ""
   });
+  const [password, setPassword] = useState<string>("");
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const name = e.target.name;
@@ -73,7 +75,7 @@ export default function SignUp() {
           console.log(res);
       })
       .catch((error) => {
-          alert(error.message);
+          alert(error.response.data.message);
       });
   }
 
@@ -120,31 +122,43 @@ export default function SignUp() {
             <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div className="modal-body">
+
               <div className="form-floating mb-3">
                 <input type="text" className="form-control" id="username" placeholder="name@example.com" name="username" pattern="^[\w\-.]{1,28}$" value={inputs.username} onChange={handleChange} onBlur={(e) => validate(e, usernameFeedback)}/>
                 <label htmlFor="username">Username</label>
                 {state.username.feedback !== "" && <div className="invalid-feedback" role="alert" aria-label="Username error">{state.username.feedback}</div>}
               </div>
+
               <div className="form-floating mb-3">
                 <input type="email" className="form-control" id="email" placeholder="name@example.com" name="emailAddress" value={inputs.emailAddress} onChange={handleChange} onBlur={(e) => validate(e, emailFeedback)}/>
                 <label htmlFor="email">Email address</label>
                 {state.emailAddress.feedback !== "" && <div className="invalid-feedback" role="alert" aria-label="Email error">{state.emailAddress.feedback}</div>}
               </div>
+
+              { password !== "" &&
+                <div className="form-floating mb-1">
+                  <PasswordStrength password={password}/>
+                </div>
+              }
+
               <div className="form-floating mb-3">
-                <input type="password" className="form-control" id="password" placeholder="Password" name="password" pattern="^(?=.*[A-Za-z])(?=.*\d)(?=.*[!#$%&'*+/=?^_‘{|}~-])[A-Za-z\d!#$%&'*+/=?^_‘{|}~-]{8,}" value={inputs.password} onChange={handleChange} onBlur={(e) => validate(e, passwordFeedback)}/>
+                <input type="password" className="form-control" id="password" placeholder="Password" name="password" pattern="^(?=.*[A-Za-z])(?=.*\d)(?=.*[!#$%&'*+/=?^_‘{|}~-])[A-Za-z\d!#$%&'*+/=?^_‘{|}~-]{8,}" value={inputs.password} onChange={(e) => {setPassword(e.target.value); handleChange(e)}} onBlur={(e) => validate(e, passwordFeedback)}/>
                 <label htmlFor="password">Password</label>
-                {state.password.feedback !== "" && <div className="invalid-feedback" role="alert" aria-label="Password error">{state.password.feedback}</div>}
+                  {state.password.feedback !== "" && <div className="invalid-feedback" role="alert" aria-label="Password error">{state.password.feedback}</div> }
               </div>
+
               <div className="form-floating mb-3">
                 <input type="password" className="form-control" id="confirmPassword" placeholder="Password" name="passwordConf" value={inputs.passwordConf} onChange={handleChange} onBlur={validatePasswordConf}/>
                 <label htmlFor="confirmPassword">Confirm password</label>
                 {state.passwordConf.feedback !== "" && <div className="invalid-feedback" role="alert" aria-label="Password confirmation error">{state.passwordConf.feedback}</div>}
               </div>
           </div>
+
           <div className="modal-footer">
             <button type="button" className="btn btn-secondary" data-bs-dismiss="modal" aria-label="Cancel">Cancel</button>
             <button type="submit" className="btn btn-primary" aria-label="Submit">Submit</button>
           </div>
+          
         </form>
       </div>
     </div>

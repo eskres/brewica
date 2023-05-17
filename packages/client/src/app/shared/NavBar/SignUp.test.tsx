@@ -89,7 +89,7 @@ describe('Sign Up', () => {
         expect(alert.textContent).toEqual('Not a valid email address');
     });
 
-    test('check input validation on password field', async () => {
+    test('check input validation and password strength on password field', async () => {
         const user = userEvent.setup();
         render(<SignUp />);
 
@@ -98,13 +98,16 @@ describe('Sign Up', () => {
         
         expect(modal).toHaveClass('modal');
         expect(password).toBeInTheDocument();
-
+        
         await user.type(password, 'short');
         await user.tab();
-
+        
         const alert = screen.getByLabelText('Password error');
         expect(alert).toBeInTheDocument();
         expect(alert.textContent).toEqual('Password requires 8 or more characters with a mix of letters, numbers & symbols');
+        const passwordStrength = screen.getByLabelText('Password strength');
+        expect(passwordStrength).toBeInTheDocument();
+        expect(passwordStrength.textContent).toEqual('Password strength: Very weak');
     });
 
     test('check input validation on confirm password field', async () => {

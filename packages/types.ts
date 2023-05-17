@@ -17,6 +17,5 @@ export interface ISignIn {
 }
 
 export type Props = {
-    handleSignIn?: FormEventHandler
-    handleSignUp?: FormEventHandler
+    password: string
 }
