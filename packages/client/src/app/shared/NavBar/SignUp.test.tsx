@@ -6,13 +6,23 @@ import axios from 'axios';
 import { Mocked } from 'vitest';
 
 describe('Sign Up', () => {
+
+    afterEach(() => {
+        vi.clearAllMocks();
+        vi.resetAllMocks();
+    })
+
     test('render sign up form, populate form and check onSubmit post request', async () => {
         const user = userEvent.setup();
 
         vi.mock('axios');
         const mockedAxios = axios as Mocked<typeof axios>;
-        mockedAxios.post.mockResolvedValueOnce('pass');
-        mockedAxios.post.mockRejectedValueOnce('fail');
+        mockedAxios.post
+            .mockResolvedValueOnce('pass')
+            .mockResolvedValueOnce({
+                data: {exists: 'false'}
+            });
+        // mockedAxios.post.mockRejectedValueOnce('fail');
 
         render(<SignUp />);
 
@@ -44,17 +54,21 @@ describe('Sign Up', () => {
 
         fireEvent.click(submit);
 
-        expect(mockedAxios.post).toHaveBeenCalledTimes(1);
+        expect(mockedAxios.post).toHaveBeenCalledTimes(2);
         expect(mockedAxios.post).toHaveBeenCalledWith('/auth/signup', {
             username: 'test123',
             emailAddress: 'test@test.com',
             password: 'password123!',
             passwordConf: 'password123!'
         });
+        expect(mockedAxios.post).toHaveBeenCalledWith('/auth/user/exists', {
+            username: 'test123'
+        });
     });
 
-    test('check input validation on username field', async () => {
+    test('check input validation (regex) on username field', async () => {
         const user = userEvent.setup();
+
         render(<SignUp />);
 
         const modal = screen.getByLabelText('Sign up');
