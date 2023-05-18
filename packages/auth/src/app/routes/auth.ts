@@ -13,6 +13,6 @@ authRouter.post("/auth/signin", signInPost);
 authRouter.get("/auth/token", refreshToken);
 authRouter.get("/auth/signout", signOut);
 authRouter.get("/auth/user", verifyAccessToken, user);
-authRouter.get("/auth/user/exists", exists);
+authRouter.post("/auth/user/exists", exists);
 
 export default authRouter;
