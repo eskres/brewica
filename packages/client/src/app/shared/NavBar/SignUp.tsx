@@ -44,7 +44,8 @@ const emailFeedback: type.Feedback = {
 };
 const usernameFeedback: type.Feedback = {
   empty: "Please enter a username to continue",
-  invalid: "Usernames must be no longer than 28 characters and are not case sensitive. Only letters, numbers, dashes and underscores are permitted"
+  invalid: "Usernames must be no longer than 28 characters and are not case sensitive. Only letters, numbers, dashes and underscores are permitted",
+  exists: "That username is already taken"
 };
 const passwordFeedback: type.Feedback = {
   empty: "Please enter a password to continue",
@@ -100,7 +101,7 @@ export default function SignUp() {
     const classes = e.target.classList;
     classes.contains('is-valid') && classes.remove('is-valid');
     classes.contains('is-invalid') && classes.remove('is-invalid');
-    // Using the contraint validation api to check for a valid email
+    // Using the constraint validation api to check for a valid email
     if (inputs.password === e.target.value && e.target.value !== ""){
       classes.add('is-valid');
       dispatch({field: e.target.name, valid: true, feedback: ""});
@@ -110,6 +111,21 @@ export default function SignUp() {
     } else {
       classes.add('is-invalid');
       dispatch({field: e.target.name, valid: false, feedback: "Passwords do not match"});
+    }
+  }
+
+  function usernameExists(e: React.FocusEvent<HTMLInputElement>) {
+    if (e.target.validity.valid) {
+      axios.post('/auth/user/exists', {username: e.target.value})
+      .then((res) => {
+        if (res.data.exists === true) {
+          e.target.classList.add('is-invalid');
+          dispatch({field: e.target.name, valid: false, feedback: usernameFeedback.exists as string})
+        }
+      })
+      .catch((error) => {
+        alert("Internal server error");
+      })
     }
   }
 
@@ -124,13 +140,14 @@ export default function SignUp() {
           <div className="modal-body">
 
               <div className="form-floating mb-3">
-                <input type="text" className="form-control" id="username" placeholder="name@example.com" name="username" pattern="^[\w\-.]{1,28}$" value={inputs.username} onChange={handleChange} onBlur={(e) => validate(e, usernameFeedback)}/>
+                <input type="text" className="form-control" id="username" placeholder="name@example.com" name="username" pattern="^[\w\-.]{1,28}$" value={inputs.username} onChange={handleChange} onBlur={(e) => {validate(e, usernameFeedback); usernameExists(e)}}/>
                 <label htmlFor="username">Username</label>
                 {state.username.feedback !== "" && <div className="invalid-feedback" role="alert" aria-label="Username error">{state.username.feedback}</div>}
               </div>
 
               <div className="form-floating mb-3">
-                <input type="email" className="form-control" id="email" placeholder="name@example.com" name="emailAddress" value={inputs.emailAddress} onChange={handleChange} onBlur={(e) => validate(e, emailFeedback)}/>
+                <input type="email" className="form-control" id="email" placeholder="name@example.com" name="emailAddress" value={inputs.emailAddress} onChange={handleChange} 
+                onBlur={(e) => {validate(e, emailFeedback)}}/>
                 <label htmlFor="email">Email address</label>
                 {state.emailAddress.feedback !== "" && <div className="invalid-feedback" role="alert" aria-label="Email error">{state.emailAddress.feedback}</div>}
               </div>

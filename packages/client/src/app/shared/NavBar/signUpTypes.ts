@@ -18,5 +18,6 @@ export type Action = {
 
 export type Feedback = {
     empty: string,
-    invalid: string
+    invalid: string,
+    exists?: string
 }
