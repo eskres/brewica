@@ -1,6 +1,6 @@
 import * as mongoose from 'mongoose';
 import 'jest'
-import { connectDB, dropDB, dropCollections } from '../../../testUtils/mongoMemoryServer'
+import { connectDB, dropDB, dropCollections } from '@brewica/util-testing';
 import User from '../../models/User';
 import { faker } from '@faker-js/faker';
 
@@ -11,7 +11,7 @@ afterEach(async () => {
     await dropCollections();
 });
 afterAll(async () => {
-    await dropDB;
+    await dropDB();
 });
 
 describe('User Model / Schema', () => {

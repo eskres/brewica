@@ -1,4 +1,4 @@
-import { connectDB, dropDB, dropCollections } from '../../../testUtils/mongoMemoryServer';
+import { connectDB, dropDB, dropCollections } from '../../../../../libs/shared/util-testing/src/lib/mongoMemoryServer';
 import type { IUser, ISignIn } from '../../../../../types';
 import supertest from 'supertest';
 import { faker } from '@faker-js/faker';
