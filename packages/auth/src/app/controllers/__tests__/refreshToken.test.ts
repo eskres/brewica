@@ -1,5 +1,5 @@
 import 'jest';
-import { connectDB, dropDB, dropCollections } from '../../../../../libs/shared/util-testing/src/lib/mongoMemoryServer';
+import { connectDB, dropDB, dropCollections } from '@brewica/util-testing';
 import supertest from 'supertest';
 import { app } from '../../../main';
 import { faker } from '@faker-js/faker';
