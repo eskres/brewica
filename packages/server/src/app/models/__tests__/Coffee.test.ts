@@ -1,11 +1,20 @@
 import mongoose from 'mongoose';
 import { connectDB, dropDB, dropCollections } from '@brewica/util-testing';
 import 'jest';
-import Coffee from '../Coffee';
+import { Roaster } from '../Roaster';
+import { type ICoffee } from '../../../../../types'
 
 beforeAll(async () => {
     await connectDB();
 });
+beforeEach(async () => {
+    const mockUserId = new mongoose.Types.ObjectId();
+    const validRoaster = new Roaster({
+        user: mockUserId,
+            name: 'Acme Coffee',
+    });
+    await validRoaster.save();
+})
 afterEach(async () => {
     await dropCollections();
 });
@@ -17,74 +26,77 @@ describe('Coffee Model / Schema', () => {
     
     it('should successfully save a new coffee document', async () => {
         // arrange
-        const validCoffee = new Coffee({
-            roaster: 'temp',
-            country: 'Kenya',
+        const validCoffee: ICoffee = {
+            name: 'New Beans',
+            country: 'Brazil',
             region: 'temp',
             producer: 'temp',
-            varieties: {SL28: true},
+            varieties: ['SL28'],
             process: 'Washed',
             elevationMin: 1850,
             elevationMax: 2000,
-            decaf: false,
-        });
+            decaf: false
+        }
+        const roaster= await Roaster.findOne({name: 'Acme Coffee'});
         // act
-        const savedCoffee = await validCoffee.save();
+        if (roaster) { roaster.coffee.push(validCoffee); }
+        await roaster.save();
+        const savedCoffee = roaster.coffee[0];
         // assert
         expect(savedCoffee._id).toBeDefined();
-        expect(savedCoffee.roaster).toBe(validCoffee.roaster);
-        expect(savedCoffee.county).toBe(validCoffee.country);
-        expect(savedCoffee.region).toBe(validCoffee.region);
-        expect(savedCoffee.varieties).toBe(validCoffee.producer);
-        expect(savedCoffee.process).toBe(validCoffee.process);
-        expect(savedCoffee.elevationMin).toBe(validCoffee.elevationMin);
-        expect(savedCoffee.elevationMax).toBe(validCoffee.elevationMax);
-        expect(savedCoffee.decaf).toBe(validCoffee.decaf);
+        expect(savedCoffee.country).toEqual(validCoffee.country);
+        expect(savedCoffee.region).toEqual(validCoffee.region);
+        expect(savedCoffee.varieties).toEqual(validCoffee.varieties);
+        expect(savedCoffee.producer).toEqual(validCoffee.producer);
+        expect(savedCoffee.process).toEqual(validCoffee.process);
+        expect(savedCoffee.elevationMin).toEqual(validCoffee.elevationMin);
+        expect(savedCoffee.elevationMax).toEqual(validCoffee.elevationMax);
+        expect(savedCoffee.decaf).toEqual(validCoffee.decaf);
     });
     it('should successfully save a new coffee document but ignore any fields that are not in the model/schema', async () => {
         // arrange
-        const invalidCoffee = new Coffee({
-            roaster: 'temp',
-            country: 'Kenya',
+        const invalidCoffee: any = {
+            name: 'New Beans',
+            country: 'Brazil',
             region: 'temp',
             producer: 'temp',
-            varieties: {SL28: true},
+            varieties: ['SL28'],
             process: 'Washed',
             elevationMin: 1850,
             elevationMax: 2000,
             decaf: false,
+            // tea is an invalid field that does not exist on the schema
             tea: false
-        });
-        // act
-        let error: mongoose.Error.ValidationError;
-        
-        try {
-            await invalidCoffee.save();     
-        } catch (err) {
-            // console.log(err);
-            error = err;
         }
+        const roaster= await Roaster.findOne({name: 'Acme Coffee'});
+        // act
+        if (roaster) { roaster.coffee.push(invalidCoffee); }
+        await roaster.save();
+        const savedCoffee = roaster.coffee[0];
         // assert
-        expect(error).toBeInstanceOf(mongoose.Error.ValidationError);
+        expect(savedCoffee).toBeDefined();
+        expect(savedCoffee).toEqual(expect.not.objectContaining({tea: expect.any(String)}));
     });
-
     it('should fail when attempting to save a coffee document without all of the required fields', async () => {
         // arrange
-        const invalidCoffee = new Coffee({
-            country: 'Kenya',
+        // using any to avoid typescript error in order to test schema validation
+        const invalidCoffee: any = {
+            // name field is missing
+            country: 'Brazil',
             region: 'temp',
             producer: 'temp',
-            varieties: {SL28: true},
+            varieties: ['SL28'],
             process: 'Washed',
             elevationMin: 1850,
             elevationMax: 2000,
-            decaf: false,
-        });
-        // act
+            decaf: false
+        };
         let error: mongoose.Error.ValidationError;
-        
+        // act
         try {
-            await invalidCoffee.save();     
+            const roaster= await Roaster.findOne({name: 'Acme Coffee'});
+            if (roaster) { roaster.coffee.push(invalidCoffee); }
+            await roaster.save();
         } catch (err) {
             // console.log(err);
             error = err;
@@ -92,24 +104,26 @@ describe('Coffee Model / Schema', () => {
         // assert
         expect(error).toBeInstanceOf(mongoose.Error.ValidationError);
     });
-    it('should fail when attempting to save a coffee document with an invalid field', async () => {
+    it('should fail when attempting to save a coffee document with an invalid field data type', async () => {
         // arrange
-        const invalidCoffee = new Coffee({
-            roaster: 'temp',
-            country: 'Kenya',
+        // using any to avoid typescript error in order to test schema validation
+        const invalidCoffee: any = {
+            name: [],
+            country: 'Brazil',
             region: 'temp',
             producer: 'temp',
-            varieties: {SL28: true},
+            varieties: ['SL28'],
             process: 'Washed',
             elevationMin: 1850,
             elevationMax: 2000,
-            decaf: false,
-        });
-        // act
+            decaf: false
+        };
         let error: mongoose.Error.ValidationError;
-        
+        // act
         try {
-            await invalidCoffee.save();     
+            const roaster= await Roaster.findOne({name: 'Acme Coffee'});
+            if (roaster) { roaster.coffee.push(invalidCoffee); }
+            await roaster.save();
         } catch (err) {
             // console.log(err);
             error = err;

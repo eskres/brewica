@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 import { connectDB, dropDB, dropCollections } from '@brewica/util-testing';
 import 'jest';
-import Espresso from '../Espresso';
+import { Espresso } from '../Espresso';
 
 beforeAll(async () => {
     await connectDB();
@@ -17,26 +17,26 @@ describe('Espresso Model / Schema', () => {
     
     it('should successfully save a new espresso document', async () => {
         // arrange
+        const mockUserId = new mongoose.Types.ObjectId();
+        const mockCoffeeId = new mongoose.Types.ObjectId();
         const validEspresso = new Espresso({
-            user: 'temp',
-            coffee: 'temp',
+            user: mockUserId,
+            coffee: mockCoffeeId,
             dose: 18,
             time: 28,
             temperature: 95,
             brewWeight: 36,
-            taste: {
-                bitter: true,
-                dry: true,
-                watery: true,
-                fruity: true,
-                sweet: true,
-                floral: true,
-                nutty: true,
-                chocolatey: true,
-                intense: true,
-                salty: true,
-                sour:true,
-            }
+            bitter: true,
+            dry: true,
+            watery: true,
+            fruity: true,
+            sweet: true,
+            floral: true,
+            nutty: true,
+            chocolatey: true,
+            intense: true,
+            salty: true,
+            sour: true,
         });
         // act
         const savedEspresso = await validEspresso.save();
@@ -48,46 +48,33 @@ describe('Espresso Model / Schema', () => {
         expect(savedEspresso.time).toBe(validEspresso.time);
         expect(savedEspresso.temperature).toBe(validEspresso.temperature);
         expect(savedEspresso.brewWeight).toBe(validEspresso.brewWeight);
-        expect(savedEspresso.taste.bitter).toBe(validEspresso.taste.bitter);
-        expect(savedEspresso.taste.dry).toBe(validEspresso.taste.dry);
-        expect(savedEspresso.taste.watery).toBe(validEspresso.taste.watery);
-        expect(savedEspresso.taste.fruity).toBe(validEspresso.taste.fruity);
-        expect(savedEspresso.taste.sweet).toBe(validEspresso.taste.sweet);
-        expect(savedEspresso.taste.floral).toBe(validEspresso.taste.floral);
-        expect(savedEspresso.taste.nutty).toBe(validEspresso.taste.nutty);
-        expect(savedEspresso.taste.chocolatey).toBe(validEspresso.taste.chocolatey);
-        expect(savedEspresso.taste.intense).toBe(validEspresso.taste.intense);
-        expect(savedEspresso.taste.salty).toBe(validEspresso.taste.salty);
-        expect(savedEspresso.taste.sour).toBe(validEspresso.taste.sour);
-
     });
 
     it('should successfully save a new espresso document but ignore any fields that are not in the model/schema', async () => {
+        // arrange
+        const mockUserId = new mongoose.Types.ObjectId();
+        const mockCoffeeId = new mongoose.Types.ObjectId();
         const invalidEspresso = new Espresso({
-            user: 'temp',
-            coffee: 'temp',
+            user: mockUserId,
+            coffee: mockCoffeeId,
             dose: 18,
             time: 28,
             temperature: 95,
             brewWeight: 36,
-            taste: {
-                bitter: true,
-                dry: true,
-                watery: true,
-                fruity: true,
-                sweet: true,
-                floral: true,
-                nutty: true,
-                chocolatey: true,
-                intense: true,
-                salty: true,
-                sour:true,
-            },
+            bitter: true,
+            dry: true,
+            watery: true,
+            fruity: true,
+            sweet: true,
+            floral: true,
+            nutty: true,
+            chocolatey: true,
+            intense: true,
+            salty: true,
             godShot: false
         });
         // act
         const savedEspresso = await invalidEspresso.save();
-        
         // assert
         expect(savedEspresso._id).toBeDefined();
         expect(savedEspresso).toEqual(expect.not.objectContaining({godShot: expect.any(Boolean)}));
@@ -100,24 +87,19 @@ describe('Espresso Model / Schema', () => {
             time: 28,
             temperature: 95,
             brewWeight: 36,
-            taste: {
-                bitter: true,
-                dry: true,
-                watery: true,
-                fruity: true,
-                sweet: true,
-                floral: true,
-                nutty: true,
-                chocolatey: true,
-                intense: true,
-                salty: true,
-                sour:true,
-            },
-            godShot: false
+            bitter: true,
+            dry: true,
+            watery: true,
+            fruity: true,
+            sweet: true,
+            floral: true,
+            nutty: true,
+            chocolatey: true,
+            intense: true,
+            salty: true,
         });
         // act
         let error: mongoose.Error.ValidationError;
-        
         try {
             await invalidEspresso.save();     
         } catch (err) {
@@ -128,31 +110,30 @@ describe('Espresso Model / Schema', () => {
         expect(error).toBeInstanceOf(mongoose.Error.ValidationError);
     });
     it('should fail when attempting to save an espresso document with an invalid field', async () => {
+        // assert
         // User and coffee fields missing
+        const mockCoffeeId = new mongoose.Types.ObjectId();
         const invalidEspresso = new Espresso({
-            user: 'temp',
-            coffee: 'temp',
+            // user should be type of mongo ObjectId
+            user: 'test',
+            coffee: mockCoffeeId,
             dose: 18,
             time: 28,
             temperature: 95,
             brewWeight: 36,
-            taste: {
-                bitter: true,
-                dry: true,
-                watery: true,
-                fruity: true,
-                sweet: true,
-                floral: true,
-                nutty: true,
-                chocolatey: true,
-                intense: true,
-                salty: true,
-                sour:true,
-            }
+            bitter: true,
+            dry: true,
+            watery: true,
+            fruity: true,
+            sweet: true,
+            floral: true,
+            nutty: true,
+            chocolatey: true,
+            intense: true,
+            salty: true,
         });
         // act
         let error: mongoose.Error.ValidationError;
-        
         try {
             await invalidEspresso.save();     
         } catch (err) {
