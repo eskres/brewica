@@ -7,7 +7,7 @@ let mongoServer: MongoMemoryServer;
 export const connectDB = async () => {
   mongoServer = await MongoMemoryServer.create();
   await mongoose.connect(mongoServer.getUri(), {});
-  con = mongoose.connection;
+  con = mongoose.connections[0];
 };
 
 export const dropDB = async () => {
