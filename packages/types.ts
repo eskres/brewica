@@ -21,21 +21,44 @@ export type Props = {
 }
 
 export interface ICoffee {
+    _id?: mongoose.Types.ObjectId,
     name: string,
-    country: string,
+    country: `${coffeeCountries}`,
     region?: string,
     producer?: string,
-    varieties?: string[],
-    process?: string,
+    varieties?: [`${coffeeVarieties}`],
+    process?: `${coffeeProcesses}`,
     elevationMin?: number,
     elevationMax?: number,
     decaf: boolean
 }
 
 export interface IRoaster {
+    _id?: mongoose.Types.ObjectId,
     user: mongoose.Types.ObjectId,
     name: string,
     coffee: ICoffee[]
+}
+
+export interface IEspresso {
+    _id?: mongoose.Types.ObjectId,
+    user: mongoose.Types.ObjectId,
+    coffee: mongoose.Types.ObjectId,
+    dose: number,
+    time: number,
+    temperature: number,
+    brewWeight: number,
+    bitter: boolean,
+    dry: boolean,
+    watery: boolean,
+    fruity: boolean,
+    sweet: boolean,
+    floral: boolean,
+    nutty: boolean,
+    chocolatey: boolean,
+    intense: boolean,
+    salty: boolean,
+    sour: boolean,
 }
 
 export enum coffeeCountries {
