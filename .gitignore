@@ -50,3 +50,14 @@ Thumbs.db
 # Next.js
 .next
 out
+
+# Prisma
+libs/db/src/generated
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# NestJS
+apps/api/dist
