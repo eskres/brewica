@@ -37,7 +37,7 @@ jobs:
       - run: npx nx run-many -t lint test build typecheck
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Build and export web to Docker
         uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
