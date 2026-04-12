@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: brewica-postgres
+    environment:
+      POSTGRES_USER: brewica
+      POSTGRES_PASSWORD: brewica
+      POSTGRES_DB: brewica
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
