@@ -23,7 +23,7 @@
     "@nestjs/testing": "^11.0.0",
     "@next/eslint-plugin-next": "^16.1.6",
     "@nx/eslint": "22.6.2",
-    "@nx/eslint-plugin": "22.6.2",
+    "@nx/eslint-plugin": "22.6.5",
     "@nx/js": "22.6.2",
     "@nx/nest": "^22.6.2",
     "@nx/next": "^22.6.2",
