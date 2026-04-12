@@ -20,7 +20,7 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
-            cd /docker/brewica
+            cd ${{ secrets.VPS_DEPLOY_PATH }}
             git pull origin main
             docker compose -f infra/docker-compose.db.yml up -d
             docker compose -f infra/docker-compose.prod.yml pull
