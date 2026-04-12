@@ -2,7 +2,20 @@
   "name": "@brewica/source",
   "version": "0.0.0",
   "license": "MIT",
-  "scripts": {},
+  "scripts": {
+    "db:push": "prisma db push",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:studio": "prisma studio",
+    "db:dev": "docker compose -f infra/docker-compose.dev.yml up -d",
+    "db:dev:down": "docker compose -f infra/docker-compose.dev.yml down",
+    "db:dev:reset": "docker compose -f infra/docker-compose.dev.yml down -v && docker compose -f infra/docker-compose.dev.yml up -d",
+    "db:prod": "docker compose -f infra/docker-compose.db.yml up -d",
+    "db:prod:down": "docker compose -f infra/docker-compose.db.yml down",
+    "prod:up": "docker compose -f infra/docker-compose.prod.yml up -d",
+    "prod:down": "docker compose -f infra/docker-compose.prod.yml down",
+    "prod:pull": "docker compose -f infra/docker-compose.prod.yml pull"
+  },
   "private": true,
   "devDependencies": {
     "@eslint/js": "^9.8.0",

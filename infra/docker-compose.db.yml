@@ -1,0 +1,21 @@
+services:
+  brewica-postgres:
+    image: postgres:16-alpine
+    container_name: brewica-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - brewica_postgres_data:/var/lib/postgresql/data
+    networks:
+      - brewica-internal
+
+networks:
+  brewica-internal:
+    name: brewica_internal
+    external: false
+
+volumes:
+  brewica_postgres_data:
