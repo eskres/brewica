@@ -7,12 +7,12 @@ services:
       - proxy
       - brewica-internal
     labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.brewica-web.rule=Host(`brewica.com`) || Host(`www.brewica.com`)"
-      - "traefik.http.routers.brewica-web.entrypoints=websecure"
-      - "traefik.http.routers.brewica-web.tls=true"
-      - "traefik.http.routers.brewica-web.middlewares=security-headers@file,rate-limit@file,brewica-web-csp@docker"
-      - "traefik.http.services.brewica-web.loadbalancer.server.port=3000"
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.brewica-web.rule=Host(`brewica.com`) || Host(`www.brewica.com`)'
+      - 'traefik.http.routers.brewica-web.entrypoints=websecure'
+      - 'traefik.http.routers.brewica-web.tls=true'
+      - 'traefik.http.routers.brewica-web.middlewares=security-headers@file,rate-limit@file,brewica-web-csp@docker'
+      - 'traefik.http.services.brewica-web.loadbalancer.server.port=3000'
       - "traefik.http.middlewares.brewica-web-csp.headers.customResponseHeaders.Content-Security-Policy=default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
 
   api:
@@ -26,12 +26,12 @@ services:
       - proxy
       - brewica-internal
     labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.brewica-api.rule=Host(`api.brewica.com`)"
-      - "traefik.http.routers.brewica-api.entrypoints=websecure"
-      - "traefik.http.routers.brewica-api.tls=true"
-      - "traefik.http.routers.brewica-api.middlewares=security-headers@file,rate-limit@file,brewica-api-csp@docker"
-      - "traefik.http.services.brewica-api.loadbalancer.server.port=4000"
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.brewica-api.rule=Host(`api.brewica.com`)'
+      - 'traefik.http.routers.brewica-api.entrypoints=websecure'
+      - 'traefik.http.routers.brewica-api.tls=true'
+      - 'traefik.http.routers.brewica-api.middlewares=security-headers@file,rate-limit@file,brewica-api-csp@docker'
+      - 'traefik.http.services.brewica-api.loadbalancer.server.port=4000'
       - "traefik.http.middlewares.brewica-api-csp.headers.customResponseHeaders.Content-Security-Policy=default-src 'none'; frame-ancestors 'none'"
 
 networks:

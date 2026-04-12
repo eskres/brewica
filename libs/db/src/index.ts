@@ -1,1 +1,1 @@
-export { PrismaService } from './lib/db.js'
+export { PrismaService } from './lib/db.js';
