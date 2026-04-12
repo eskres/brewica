@@ -27,7 +27,7 @@ jobs:
 
       - run: npm ci
 
-      - run: npx nx format:check
+      - run: npx nx format:check --all
       - run: npx nx run-many -t lint test build typecheck
 
       - name: Log in to GitHub Container Registry
