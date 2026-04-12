@@ -18,6 +18,10 @@ FROM base AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 
+LABEL org.opencontainers.image.source=https://github.com/eskres/brewica
+LABEL org.opencontainers.image.description="Brewica web frontend"
+LABEL org.opencontainers.image.licenses=MIT
+
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
