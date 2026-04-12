@@ -36,6 +36,39 @@ jobs:
 
       - run: npx nx run-many -t lint test build typecheck
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and export web to Docker
+        uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
+        with:
+          context: .
+          file: apps/web/Dockerfile
+          load: true
+          tags: brewica-web:test
+
+      - name: Test web image
+        run: |
+          docker run --rm -d -p 3000:3000 --name brewica-web-test brewica-web:test
+          sleep 5
+          curl --fail http://localhost:3000 || exit 1
+          docker stop brewica-web-test
+
+      - name: Build and export api to Docker
+        uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
+        with:
+          context: .
+          file: apps/api/Dockerfile
+          load: true
+          tags: brewica-api:test
+
+      - name: Test api image
+        run: |
+          docker run --rm -d -p 4000:4000 --name brewica-api-test brewica-api:test
+          sleep 5
+          curl --fail http://localhost:4000/api || exit 1
+          docker stop brewica-api-test
+
       - name: Log in to the Container registry
         if: github.ref == 'refs/heads/main'
         uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
@@ -53,7 +86,6 @@ jobs:
 
       - name: Build and push web image
         if: github.ref == 'refs/heads/main'
-        id: push-web
         uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
         with:
           context: .
@@ -71,7 +103,6 @@ jobs:
 
       - name: Build and push api image
         if: github.ref == 'refs/heads/main'
-        id: push-api
         uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
         with:
           context: .
