@@ -1,6 +1,6 @@
 services:
   web:
-    image: ghcr.io/yourgithubusername/brewica-web:latest
+    image: ghcr.io/eskres/brewica-web:latest
     container_name: brewica-web
     restart: unless-stopped
     networks:
@@ -16,7 +16,7 @@ services:
       - "traefik.http.middlewares.brewica-web-csp.headers.customResponseHeaders.Content-Security-Policy=default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
 
   api:
-    image: ghcr.io/yourgithubusername/brewica-api:latest
+    image: ghcr.io/eskres/brewica-api:latest
     container_name: brewica-api
     restart: unless-stopped
     environment:
