@@ -10,6 +10,7 @@ services:
       - brewica-internal
     labels:
       - 'traefik.enable=true'
+      - 'traefik.docker.network=traefik_proxy'
       - 'traefik.http.routers.brewica-web.rule=Host(`brewica.com`) || Host(`www.brewica.com`)'
       - 'traefik.http.routers.brewica-web.entrypoints=websecure'
       - 'traefik.http.routers.brewica-web.tls=true'
@@ -28,6 +29,7 @@ services:
       - brewica-internal
     labels:
       - 'traefik.enable=true'
+      - 'traefik.docker.network=traefik_proxy'
       - 'traefik.http.routers.brewica-api.rule=Host(`api.brewica.com`)'
       - 'traefik.http.routers.brewica-api.entrypoints=websecure'
       - 'traefik.http.routers.brewica-api.tls=true'
