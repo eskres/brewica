@@ -24,6 +24,7 @@ jobs:
             git pull origin main
             echo ${{ secrets.GHCR_TOKEN }} | docker login ghcr.io -u ${{ secrets.VPS_USER }} --password-stdin
             docker compose -f infra/docker-compose.db.yml up -d
+            docker compose -f infra/docker-compose.auth.yml up -d
             docker compose -f infra/docker-compose.prod.yml pull
             docker compose -f infra/docker-compose.prod.yml up -d
             docker image prune -f

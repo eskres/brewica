@@ -1,0 +1,59 @@
+services:
+  authentik-postgres:
+    image: postgres:16-alpine
+    container_name: authentik-postgres
+    restart: unless-stopped
+    env_file:
+      - ../.env.auth
+    volumes:
+      - authentik_postgres_data:/var/lib/postgresql/data
+    networks:
+      - authentik-internal
+
+  authentik-server:
+    image: ghcr.io/goauthentik/server:2025.10.4
+    container_name: authentik-server
+    restart: unless-stopped
+    command: server
+    env_file:
+      - ../.env.auth
+    volumes:
+      - authentik_media:/media
+      - authentik_templates:/templates
+    networks:
+      - proxy
+      - authentik-internal
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik_proxy"
+      - "traefik.http.routers.authentik.rule=Host(`auth.brewica.com`)"
+      - "traefik.http.routers.authentik.entrypoints=websecure"
+      - "traefik.http.routers.authentik.tls=true"
+      - "traefik.http.services.authentik.loadbalancer.server.port=9000"
+
+  authentik-worker:
+    image: ghcr.io/goauthentik/server:2025.10.4
+    container_name: authentik-worker
+    restart: unless-stopped
+    command: worker
+    env_file:
+      - ../.env.auth
+    volumes:
+      - authentik_media:/media
+      - authentik_templates:/templates
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - authentik-internal
+
+networks:
+  proxy:
+    name: traefik_proxy
+    external: true
+  authentik-internal:
+    name: authentik_internal
+    driver: bridge
+
+volumes:
+  authentik_postgres_data:
+  authentik_media:
+  authentik_templates:
