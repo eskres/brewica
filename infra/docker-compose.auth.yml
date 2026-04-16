@@ -24,12 +24,12 @@ services:
       - proxy
       - authentik-internal
     labels:
-      - "traefik.enable=true"
-      - "traefik.docker.network=traefik_proxy"
-      - "traefik.http.routers.authentik.rule=Host(`auth.brewica.com`)"
-      - "traefik.http.routers.authentik.entrypoints=websecure"
-      - "traefik.http.routers.authentik.tls=true"
-      - "traefik.http.services.authentik.loadbalancer.server.port=9000"
+      - 'traefik.enable=true'
+      - 'traefik.docker.network=traefik_proxy'
+      - 'traefik.http.routers.authentik.rule=Host(`auth.brewica.com`)'
+      - 'traefik.http.routers.authentik.entrypoints=websecure'
+      - 'traefik.http.routers.authentik.tls=true'
+      - 'traefik.http.services.authentik.loadbalancer.server.port=9000'
 
   authentik-worker:
     image: ghcr.io/goauthentik/server:2025.10.4
