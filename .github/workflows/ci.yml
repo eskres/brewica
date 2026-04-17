@@ -71,7 +71,7 @@ jobs:
 
       - name: Log in to the Container registry
         if: github.ref == 'refs/heads/main'
-        uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
+        uses: docker/login-action@36864503dc2a3702db7dc554479e3e1a29bb8337
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
