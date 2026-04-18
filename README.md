@@ -1,10 +1,13 @@
 # Brewica
+
 A coffee diary that gives you feedback.
 
 ## Objectives
+
 Built to showcase end-to-end product development across infrastructure, DevOps, frontend and backend. A learning project and portfolio piece that reflects how I work with TypeScript across the full stack.
 
 ## Stack & Decisions
+
 - **Nx monorepo**: keeps the frontend, backend and shared types in sync with unified tooling and CI
 - **Next.js 16 + React 19**: frontend, with Tailwind CSS for styling and Vitest for testing
 - **NestJS 11**: TypeScript native structured API
@@ -15,13 +18,14 @@ Built to showcase end-to-end product development across infrastructure, DevOps, 
 - **TypeScript 5.9:** type safety across the full stack
 
 ## Structure
-| Project | Description |
-|---|---|
-| `apps/web` | Frontend web application |
-| `apps/api` | Backend REST API |
-| `apps/api-e2e` | End-to-end tests for the API (planned) |
-| `libs/db` | Prisma client and schema |
-| `libs/shared-types` | Shared TypeScript types |
+
+| Project             | Description                            |
+| ------------------- | -------------------------------------- |
+| `apps/web`          | Frontend web application               |
+| `apps/api`          | Backend REST API                       |
+| `apps/api-e2e`      | End-to-end tests for the API (planned) |
+| `libs/db`           | Prisma client and schema               |
+| `libs/shared-types` | Shared TypeScript types                |
 
 ## AI Usage - Claude
 
