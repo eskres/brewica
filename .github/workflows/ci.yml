@@ -19,11 +19,11 @@ jobs:
   main:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: 24
           cache: 'npm'
@@ -37,7 +37,7 @@ jobs:
       - run: npx nx run-many -t lint test build typecheck
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Build and export web to Docker
         uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
@@ -71,7 +71,7 @@ jobs:
 
       - name: Log in to the Container registry
         if: github.ref == 'refs/heads/main'
-        uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
+        uses: docker/login-action@36864503dc2a3702db7dc554479e3e1a29bb8337
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
@@ -80,7 +80,7 @@ jobs:
       - name: Extract metadata for web
         if: github.ref == 'refs/heads/main'
         id: meta-web
-        uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
+        uses: docker/metadata-action@a7807070e67ad478bd5f672f499303a151742e53
         with:
           images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/brewica-web
 
@@ -97,7 +97,7 @@ jobs:
       - name: Extract metadata for api
         if: github.ref == 'refs/heads/main'
         id: meta-api
-        uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
+        uses: docker/metadata-action@a7807070e67ad478bd5f672f499303a151742e53
         with:
           images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/brewica-api
 
