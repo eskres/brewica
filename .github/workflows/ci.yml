@@ -40,7 +40,7 @@ jobs:
         uses: docker/setup-buildx-action@v4
 
       - name: Build and export web to Docker
-        uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
+        uses: docker/build-push-action@c269a24fa28c26bf87ecef8c9ec22746dd962204
         with:
           context: .
           file: apps/web/Dockerfile
@@ -55,7 +55,7 @@ jobs:
           docker stop brewica-web-test
 
       - name: Build and export api to Docker
-        uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
+        uses: docker/build-push-action@c269a24fa28c26bf87ecef8c9ec22746dd962204
         with:
           context: .
           file: apps/api/Dockerfile
@@ -86,7 +86,7 @@ jobs:
 
       - name: Build and push web image
         if: github.ref == 'refs/heads/main'
-        uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
+        uses: docker/build-push-action@c269a24fa28c26bf87ecef8c9ec22746dd962204
         with:
           context: .
           file: apps/web/Dockerfile
@@ -103,7 +103,7 @@ jobs:
 
       - name: Build and push api image
         if: github.ref == 'refs/heads/main'
-        uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
+        uses: docker/build-push-action@c269a24fa28c26bf87ecef8c9ec22746dd962204
         with:
           context: .
           file: apps/api/Dockerfile
