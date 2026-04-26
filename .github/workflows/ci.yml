@@ -80,7 +80,7 @@ jobs:
       - name: Extract metadata for web
         if: github.ref == 'refs/heads/main'
         id: meta-web
-        uses: docker/metadata-action@deaa0dee567db6b95038c14152b037af85a8fe3b
+        uses: docker/metadata-action@59ccfb174a87fbe94657b1b65802d8e97abade8d
         with:
           images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/brewica-web
 
@@ -97,7 +97,7 @@ jobs:
       - name: Extract metadata for api
         if: github.ref == 'refs/heads/main'
         id: meta-api
-        uses: docker/metadata-action@deaa0dee567db6b95038c14152b037af85a8fe3b
+        uses: docker/metadata-action@59ccfb174a87fbe94657b1b65802d8e97abade8d
         with:
           images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/brewica-api
 
