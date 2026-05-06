@@ -1,19 +1,25 @@
 import * as client from 'openid-client';
 
 const server: URL = new URL('https://auth.brewica.com/application/o/brewica/');
-const id = process.env.AUTH_CLIENT_ID;
-const secret = process.env.AUTH_CLIENT_SECRET;
 
-if (!id || !secret) {
-  throw new Error('OPENID_CLIENT_ID and OPENID_CLIENT_SECRET must be set');
+const checkClientEnv = () => {
+  const id = process.env.AUTH_CLIENT_ID;
+  const secret = process.env.AUTH_CLIENT_SECRET;
+  if (!id) {
+    throw new Error('Client ID is missing');
+  }
+  if (!secret) {
+    throw new Error('Client secret is missing');
+  }
+  const clientId: string = id;
+  const clientSecret: string = secret;
+  return {clientSecret, clientId};
 }
-
-const clientId: string = id;
-const clientSecret: string = secret;
 
 let configPromise: Promise<client.Configuration> | null = null;
 
-export function getConfig() {
+export async function getConfig() {
+  const {clientId, clientSecret} = checkClientEnv();
   if (!configPromise) {
     configPromise = client.discovery(
       server,
@@ -25,4 +31,4 @@ export function getConfig() {
     })
   }
   return configPromise
-};
+}
